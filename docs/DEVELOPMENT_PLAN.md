@@ -434,7 +434,9 @@ kg.ingest_pdf_sync("doc.pdf")
 kg.query_sync("What were the findings?")
 ```
 
-**Deliverable**: Complete KnowledgeGraph class.
+**Note**: `KGShell` is still a placeholder. The above shell calls are not yet implemented.
+
+**Deliverable**: Complete KnowledgeGraph class (shell interface pending).
 
 ---
 
@@ -451,7 +453,7 @@ kg.query_sync("What were the findings?")
 zomma-kg ingest report.pdf --kb ./my_kb     # ✅ Implemented
 zomma-kg query "What were the risks?" --kb ./my_kb  # ✅ Implemented
 zomma-kg info --kb ./my_kb                  # ✅ Implemented
-zomma-kg shell --kb ./my_kb                 # ⏳ Placeholder (depends on Phase 5)
+zomma-kg shell --kb ./my_kb                 # ⏳ Placeholder (KGShell not implemented)
 zomma-kg export --format json --kb ./my_kb  # ❌ Not implemented
 ```
 
@@ -495,6 +497,8 @@ zomma-kg export --format json --kb ./my_kb  # ❌ Not implemented
 - `tests/test_assembler.py` - Assembly pipeline ✅
 - `tests/test_query_pipeline.py` - Query pipeline ✅
 - `tests/test_knowledge_graph.py` - Main API ✅
+- `tests/test_mcp_server.py` - MCP server command flow ✅
+- `tests/test_parquet_append_scalability.py` - Parquet append scalability ✅
 - `tests/test_shell.py` - Shell commands ❌ (depends on Phase 5)
 
 ### 7.2 Integration Tests
@@ -505,7 +509,8 @@ zomma-kg export --format json --kb ./my_kb  # ❌ Not implemented
 
 ### 7.3 Documentation
 
-- README.md quickstart ❌
+- README.md quickstart ✅
+- Developer guide (`docs/DEVELOPER_GUIDE.md`) ✅
 - API reference (docstrings) ⏳ Partial
 - Migration guide from Neo4j ❌
 
@@ -631,4 +636,4 @@ The package is complete when:
 | **Portable** | Knowledge base is a directory that can be zipped and shared | ✅ Working |
 | **Agent-friendly** | MCP server with kg_execute tool for LLM agents | ✅ Working |
 | **Tested** | Core functionality has test coverage | ⏳ Partial |
-| **Documented** | README with quickstart, API docstrings | ❌ Not done |
+| **Documented** | README quickstart + Developer Guide; API docstrings partial | ⏳ Partial |

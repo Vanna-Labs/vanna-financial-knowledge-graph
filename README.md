@@ -23,6 +23,10 @@ result = await kg.query("What were the key findings?")
 print(result.answer)
 ```
 
+## Developer Guide
+
+See `docs/DEVELOPER_GUIDE.md` for a comprehensive API and usage guide.
+
 ## Features
 
 - **Zero Infrastructure**: Embedded storage using DuckDB, LanceDB, and Parquet
