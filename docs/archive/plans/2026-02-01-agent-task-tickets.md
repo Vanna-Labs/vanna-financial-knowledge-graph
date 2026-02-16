@@ -25,7 +25,7 @@ Fix ingestion model construction in `KnowledgeGraph` so it matches current Pydan
 
 ## Target files
 
-- `zomma_kg/api/knowledge_graph.py`
+- `vanna_kg/api/knowledge_graph.py`
 - `tests/test_knowledge_graph.py` (and/or new focused ingestion test file)
 
 ## Required changes
@@ -67,8 +67,8 @@ Fix runtime field mismatches in query-result mapping and chunk-key mapping in re
 
 ## Target files
 
-- `zomma_kg/api/knowledge_graph.py`
-- `zomma_kg/query/researcher.py`
+- `vanna_kg/api/knowledge_graph.py`
+- `vanna_kg/query/researcher.py`
 - `tests/test_query_pipeline.py`
 - (optional) `tests/test_knowledge_graph.py`
 
@@ -109,9 +109,9 @@ Ensure topic resolution consistently searches ontology-group vectors and maps to
 
 ## Target files
 
-- `zomma_kg/api/knowledge_graph.py`
-- `zomma_kg/ingestion/resolution/topic_resolver.py`
-- `zomma_kg/query/researcher.py` (only if needed for consistency)
+- `vanna_kg/api/knowledge_graph.py`
+- `vanna_kg/ingestion/resolution/topic_resolver.py`
+- `vanna_kg/query/researcher.py` (only if needed for consistency)
 - `tests/test_topic_resolver.py`
 - `tests/test_query_pipeline.py` (topic resolution behavior)
 
@@ -153,13 +153,13 @@ Clean up public API drift and make docs/features truthful.
 
 ## Target files
 
-- `zomma_kg/api/convenience.py`
-- `zomma_kg/api/knowledge_graph.py` (if adding missing methods)
+- `vanna_kg/api/convenience.py`
+- `vanna_kg/api/knowledge_graph.py` (if adding missing methods)
 - `README.md`
-- `zomma_kg/ingestion/extraction/README.md`
-- `zomma_kg/ingestion/resolution/README.md`
-- `zomma_kg/ingestion/assembly/README.md`
-- optional: `zomma_kg/api/shell.py`, CLI help text where needed
+- `vanna_kg/ingestion/extraction/README.md`
+- `vanna_kg/ingestion/resolution/README.md`
+- `vanna_kg/ingestion/assembly/README.md`
+- optional: `vanna_kg/api/shell.py`, CLI help text where needed
 
 ## Required changes
 
@@ -195,8 +195,8 @@ Design and prototype a better write path than full parquet rewrite-on-append.
 
 ## Target files
 
-- `zomma_kg/storage/parquet/backend.py`
-- optional new module(s) under `zomma_kg/storage/parquet/`
+- `vanna_kg/storage/parquet/backend.py`
+- optional new module(s) under `vanna_kg/storage/parquet/`
 - performance/behavior tests (new)
 
 ## Required changes

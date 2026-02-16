@@ -10,7 +10,7 @@
 
 The `entity_dedup.py` module handles in-document entity deduplication - merging entity mentions that refer to the same real-world entity within a single document (e.g., "Apple Inc.", "AAPL", "Apple" → single canonical entity).
 
-This is Phase 2a-c of the ZommaKG ingestion pipeline, sitting between extraction (Phase 1) and cross-document resolution (Phase 2d).
+This is Phase 2a-c of the VannaKG ingestion pipeline, sitting between extraction (Phase 1) and cross-document resolution (Phase 2d).
 
 ---
 
@@ -215,7 +215,7 @@ When an entity appears in multiple batches with different group assignments:
 ## File Structure
 
 ```
-zomma_kg/
+vanna_kg/
 ├── types/
 │   └── results.py              # Add: MergeRecord, CanonicalEntity, EntityDeduplicationOutput
 │
@@ -246,8 +246,8 @@ Within `entity_dedup.py`:
 
 - `numpy` - for similarity matrix computation
 - `uuid` - for generating entity UUIDs
-- Existing: `UnionFind` from `zomma_kg.utils.clustering`
-- Existing: `LLMProvider`, `EmbeddingProvider` from `zomma_kg.providers.base`
+- Existing: `UnionFind` from `vanna_kg.utils.clustering`
+- Existing: `LLMProvider`, `EmbeddingProvider` from `vanna_kg.providers.base`
 - Existing: `EnumeratedEntity`, `EntityDedupeResult`, `EntityGroup` from types
 
 ---
@@ -266,9 +266,9 @@ Within `entity_dedup.py`:
 ## Example Usage
 
 ```python
-from zomma_kg.providers import OpenAILLMProvider, OpenAIEmbeddingProvider
-from zomma_kg.ingestion.extraction import extract_from_chunk
-from zomma_kg.ingestion.resolution import deduplicate_entities
+from vanna_kg.providers import OpenAILLMProvider, OpenAIEmbeddingProvider
+from vanna_kg.ingestion.extraction import extract_from_chunk
+from vanna_kg.ingestion.resolution import deduplicate_entities
 
 # Phase 1: Extract
 llm = OpenAILLMProvider()

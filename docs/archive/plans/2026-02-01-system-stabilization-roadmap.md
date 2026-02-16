@@ -1,4 +1,4 @@
-# ZommaKG Stabilization Roadmap (Priority-Ordered)
+# VannaKG Stabilization Roadmap (Priority-Ordered)
 
 Date: 2026-02-01
 
@@ -22,27 +22,27 @@ The architecture is strong and modular, and tests currently pass, but there are 
 
 ## 1) Ingestion facade constructs models with outdated field names (runtime break risk)
 
-- File: `zomma_kg/api/knowledge_graph.py`
+- File: `vanna_kg/api/knowledge_graph.py`
 - Evidence:
-  - `TopicDefinition(name=...)` is used, but model expects `topic` (`zomma_kg/types/topics.py`).
-  - `Document(filename=..., date=...)` is used, but model expects `name`, `document_date` (`zomma_kg/types/chunks.py`).
+  - `TopicDefinition(name=...)` is used, but model expects `topic` (`vanna_kg/types/topics.py`).
+  - `Document(filename=..., date=...)` is used, but model expects `name`, `document_date` (`vanna_kg/types/chunks.py`).
   - `Chunk(doc_uuid=...)` is used, but model expects `document_uuid`.
   - `Fact(... relationship=...)` is used, but model expects `relationship_type`, plus required `subject_name`, `object_name`, `object_type`.
   - `TopicResolution` is read with `ontology_uuid`, but model field is `uuid`.
 
 ## 2) Query facade output mapping mismatches current query models (runtime break risk)
 
-- File: `zomma_kg/api/knowledge_graph.py`
+- File: `vanna_kg/api/knowledge_graph.py`
 - Evidence:
-  - Uses `sa.query_text`; current model field is `sa.sub_query` (`zomma_kg/query/types.py`).
+  - Uses `sa.query_text`; current model field is `sa.sub_query` (`vanna_kg/query/types.py`).
   - Uses `result.question_type.value`; current model stores string (`question_type: str`), not enum.
 
 ## 3) Retrieval key mapping mismatch drops chunk metadata/context
 
-- File: `zomma_kg/query/researcher.py`
+- File: `vanna_kg/query/researcher.py`
 - Evidence:
   - Reads `cd.get("uuid")` and `cd.get("document_name")`.
-  - DuckDB query returns `chunk_id` and `doc_name` (`zomma_kg/storage/duckdb/queries.py`).
+  - DuckDB query returns `chunk_id` and `doc_name` (`vanna_kg/storage/duckdb/queries.py`).
 - Impact:
   - `chunk_id` can become empty.
   - context dedupe quality degrades.
@@ -50,14 +50,14 @@ The architecture is strong and modular, and tests currently pass, but there are 
 
 ## 4) Topic resolver wiring likely incorrect for ontology-vs-default groups
 
-- Files: `zomma_kg/api/knowledge_graph.py`, `zomma_kg/ingestion/resolution/topic_resolver.py`, `zomma_kg/storage/lancedb/indices.py`
+- Files: `vanna_kg/api/knowledge_graph.py`, `vanna_kg/ingestion/resolution/topic_resolver.py`, `vanna_kg/storage/lancedb/indices.py`
 - Evidence:
   - `TopicResolver` gets `self._storage._lancedb` (default group), while resolver expects ontology candidates and filters by ontology group.
   - LanceDB `search_topics` already filters by index `group_id`; wrong index group will return empty ontology candidates.
 
 ## 5) Public API / convenience drift
 
-- File: `zomma_kg/api/convenience.py`
+- File: `vanna_kg/api/convenience.py`
 - Evidence:
   - Calls `kg.ingest_chunks(...)` and `kg.decompose(...)`, but these methods are not present in `KnowledgeGraph`.
 
@@ -73,7 +73,7 @@ The architecture is strong and modular, and tests currently pass, but there are 
 
 ## 8) Scale risk in parquet append strategy
 
-- File: `zomma_kg/storage/parquet/backend.py`
+- File: `vanna_kg/storage/parquet/backend.py`
 - Current append path reads whole parquet, concatenates, rewrites whole file per append.
 - Works functionally; will degrade at larger KB sizes.
 
@@ -87,7 +87,7 @@ The architecture is strong and modular, and tests currently pass, but there are 
 
 ### P0.1 Align ingestion facade with current typed models
 
-- Update `zomma_kg/api/knowledge_graph.py`:
+- Update `vanna_kg/api/knowledge_graph.py`:
   - `TopicDefinition(topic=..., definition=...)`
   - `Document(name=..., document_date=..., ...)`
   - `Chunk(document_uuid=..., ...)`
@@ -99,7 +99,7 @@ The architecture is strong and modular, and tests currently pass, but there are 
 
 ### P0.2 Fix query result mapping in facade
 
-- Update `zomma_kg/api/knowledge_graph.py` query mapping:
+- Update `vanna_kg/api/knowledge_graph.py` query mapping:
   - `sa.sub_query` (not `sa.query_text`)
   - `question_type=result.question_type` (string passthrough)
 - Acceptance criteria:
@@ -108,7 +108,7 @@ The architecture is strong and modular, and tests currently pass, but there are 
 
 ### P0.3 Fix researcher chunk key mapping
 
-- Update `zomma_kg/query/researcher.py`:
+- Update `vanna_kg/query/researcher.py`:
   - Use `chunk_id` and `doc_name` keys from storage responses.
   - Optional backward-compatible fallback for legacy keys.
 - Acceptance criteria:
@@ -168,9 +168,9 @@ Acceptance:
 ### P2.1 Update stale docs (Neo4j/Qdrant references)
 
 - Refresh:
-  - `zomma_kg/ingestion/extraction/README.md`
-  - `zomma_kg/ingestion/resolution/README.md`
-  - `zomma_kg/ingestion/assembly/README.md`
+  - `vanna_kg/ingestion/extraction/README.md`
+  - `vanna_kg/ingestion/resolution/README.md`
+  - `vanna_kg/ingestion/assembly/README.md`
 
 Acceptance:
 - docs describe current Parquet + DuckDB + LanceDB system.
@@ -200,7 +200,7 @@ Acceptance:
 ## Agent Work Packages (Parallelizable)
 
 ## Agent A (P0.1)
-- Fix ingestion model-field mismatches in `zomma_kg/api/knowledge_graph.py`.
+- Fix ingestion model-field mismatches in `vanna_kg/api/knowledge_graph.py`.
 - Add focused ingestion integration tests.
 
 ## Agent B (P0.2 + P0.3)

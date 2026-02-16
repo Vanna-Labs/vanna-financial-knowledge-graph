@@ -79,17 +79,17 @@ query(question)
 
 | Command | Description |
 |---------|-------------|
-| `zomma-kg ingest <path>` | Ingest PDF/markdown file or directory |
-| `zomma-kg query "question"` | Query the knowledge base |
-| `zomma-kg info` | Display KB statistics |
-| `zomma-kg shell` | Interactive navigation (placeholder) |
+| `vanna-kg ingest <path>` | Ingest PDF/markdown file or directory |
+| `vanna-kg query "question"` | Query the knowledge base |
+| `vanna-kg info` | Display KB statistics |
+| `vanna-kg shell` | Interactive navigation (placeholder) |
 
 **Common options:**
 - `--kb, -k PATH` - Knowledge base directory (default: `./kb`)
 
 ## Files to Modify
 
-### 1. `zomma_kg/api/knowledge_graph.py`
+### 1. `vanna_kg/api/knowledge_graph.py`
 
 Full implementation replacing stubs:
 
@@ -129,7 +129,7 @@ class KnowledgeGraph:
         return QueryResult(...)
 ```
 
-### 2. `zomma_kg/cli/__init__.py`
+### 2. `vanna_kg/cli/__init__.py`
 
 Typer-based CLI:
 
@@ -138,7 +138,7 @@ import typer
 from rich.console import Console
 from rich.progress import Progress
 
-app = typer.Typer(name="zomma-kg")
+app = typer.Typer(name="vanna-kg")
 console = Console()
 
 @app.command()
@@ -179,7 +179,7 @@ Add dependency and entry point:
 typer = {version = ">=0.9.0", extras = ["all"]}
 
 [project.scripts]
-zomma-kg = "zomma_kg.cli:main"
+vanna-kg = "vanna_kg.cli:main"
 ```
 
 ## Implementation Tasks

@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from zomma_kg.mcp.server import (
+from vanna_kg.mcp.server import (
     Session,
     cmd_stats,
     execute_command,
@@ -136,7 +136,7 @@ class TestStatsCommand:
             "documents": 10,
         })
 
-        with patch("zomma_kg.mcp.server.get_kg", return_value=mock_kg):
+        with patch("vanna_kg.mcp.server.get_kg", return_value=mock_kg):
             result = await cmd_stats([])
 
         assert "KNOWLEDGE BASE STATISTICS" in result
@@ -151,7 +151,7 @@ class TestFindCommand:
 
     @pytest.mark.asyncio
     async def test_find_entity_and_topic(self):
-        from zomma_kg.mcp.server import cmd_find
+        from vanna_kg.mcp.server import cmd_find
 
         # Mock entity
         mock_entity = MagicMock()
@@ -171,7 +171,7 @@ class TestFindCommand:
         mock_kg._embeddings = MagicMock()
         mock_kg._embeddings.embed_single = AsyncMock(return_value=[0.1, 0.2])
 
-        with patch("zomma_kg.mcp.server.get_kg", return_value=mock_kg):
+        with patch("vanna_kg.mcp.server.get_kg", return_value=mock_kg):
             result = await cmd_find(
                 [
                     "--entity",
@@ -189,35 +189,35 @@ class TestFindCommand:
 
     @pytest.mark.asyncio
     async def test_find_no_args(self):
-        from zomma_kg.mcp.server import cmd_find
+        from vanna_kg.mcp.server import cmd_find
 
         result = await cmd_find([])
         assert result == "Usage: find --entity <json> and/or --topic <json>"
 
     @pytest.mark.asyncio
     async def test_find_invalid_json(self):
-        from zomma_kg.mcp.server import cmd_find
+        from vanna_kg.mcp.server import cmd_find
 
         result = await cmd_find(["--entity", "{bad json"])
         assert "Invalid Entity selector JSON" in result
 
     @pytest.mark.asyncio
     async def test_find_missing_definition(self):
-        from zomma_kg.mcp.server import cmd_find
+        from vanna_kg.mcp.server import cmd_find
 
         result = await cmd_find(["--entity", '{"name":"Apple"}'])
         assert "requires non-empty definition" in result
 
     @pytest.mark.asyncio
     async def test_find_empty_definition(self):
-        from zomma_kg.mcp.server import cmd_find
+        from vanna_kg.mcp.server import cmd_find
 
         result = await cmd_find(["--entity", '{"name":"Apple","definition":"  "}'])
         assert "requires non-empty definition" in result
 
     @pytest.mark.asyncio
     async def test_find_multiple_selectors_with_ids(self):
-        from zomma_kg.mcp.server import cmd_find
+        from vanna_kg.mcp.server import cmd_find
 
         mock_entity = MagicMock()
         mock_entity.name = "Apple Inc"
@@ -235,7 +235,7 @@ class TestFindCommand:
         mock_kg._embeddings = MagicMock()
         mock_kg._embeddings.embed_single = AsyncMock(return_value=[0.1, 0.2])
 
-        with patch("zomma_kg.mcp.server.get_kg", return_value=mock_kg):
+        with patch("vanna_kg.mcp.server.get_kg", return_value=mock_kg):
             result = await cmd_find(
                 [
                     "--entity",
@@ -253,21 +253,21 @@ class TestFindCommand:
 
     @pytest.mark.asyncio
     async def test_find_rejects_legacy_to_flag(self):
-        from zomma_kg.mcp.server import cmd_find
+        from vanna_kg.mcp.server import cmd_find
 
         result = await cmd_find(["-to", "Inflation"])
         assert result == "Usage: find --entity <json> and/or --topic <json>"
 
     @pytest.mark.asyncio
     async def test_find_rejects_legacy_entity_flag(self):
-        from zomma_kg.mcp.server import cmd_find
+        from vanna_kg.mcp.server import cmd_find
 
         result = await cmd_find(["-entity", "Apple"])
         assert result == "Usage: find --entity <json> and/or --topic <json>"
 
     @pytest.mark.asyncio
     async def test_find_rejects_legacy_topic_flag(self):
-        from zomma_kg.mcp.server import cmd_find
+        from vanna_kg.mcp.server import cmd_find
 
         result = await cmd_find(["-topic", "Inflation"])
         assert result == "Usage: find --entity <json> and/or --topic <json>"
@@ -278,7 +278,7 @@ class TestSearchCommand:
 
     @pytest.mark.asyncio
     async def test_search_default_mode_around(self):
-        from zomma_kg.mcp.server import cmd_search
+        from vanna_kg.mcp.server import cmd_search
 
         mock_duckdb = MagicMock()
         mock_duckdb.get_facts_by_entities = AsyncMock(
@@ -295,7 +295,7 @@ class TestSearchCommand:
         mock_kg._storage = mock_storage
         mock_kg._embeddings = MagicMock()
 
-        with patch("zomma_kg.mcp.server.get_kg", return_value=mock_kg):
+        with patch("vanna_kg.mcp.server.get_kg", return_value=mock_kg):
             result = await cmd_search(["-entity", "Apple Inc"])
 
         assert "mode: around" in result
@@ -305,17 +305,17 @@ class TestSearchCommand:
 
     @pytest.mark.asyncio
     async def test_search_requires_selector(self):
-        from zomma_kg.mcp.server import cmd_search
+        from vanna_kg.mcp.server import cmd_search
 
         mock_kg = AsyncMock()
-        with patch("zomma_kg.mcp.server.get_kg", return_value=mock_kg):
+        with patch("vanna_kg.mcp.server.get_kg", return_value=mock_kg):
             result = await cmd_search(["--mode", "between"])
 
         assert result == "Usage: search requires at least one selector: -entity and/or -topic"
 
     @pytest.mark.asyncio
     async def test_search_between_entity_subset(self):
-        from zomma_kg.mcp.server import cmd_search
+        from vanna_kg.mcp.server import cmd_search
 
         mock_duckdb = MagicMock()
         mock_duckdb.get_facts_by_entities = AsyncMock(
@@ -332,7 +332,7 @@ class TestSearchCommand:
         mock_kg._storage = mock_storage
         mock_kg._embeddings = MagicMock()
 
-        with patch("zomma_kg.mcp.server.get_kg", return_value=mock_kg):
+        with patch("vanna_kg.mcp.server.get_kg", return_value=mock_kg):
             result = await cmd_search(
                 ["-entity", "Apple Inc, Microsoft Corp", "--mode", "between"]
             )
@@ -344,7 +344,7 @@ class TestSearchCommand:
 
     @pytest.mark.asyncio
     async def test_search_between_mixed_subset(self):
-        from zomma_kg.mcp.server import cmd_search
+        from vanna_kg.mcp.server import cmd_search
 
         mock_duckdb = MagicMock()
         mock_duckdb.get_facts_by_entities = AsyncMock(
@@ -361,7 +361,7 @@ class TestSearchCommand:
         mock_kg._storage = mock_storage
         mock_kg._embeddings = MagicMock()
 
-        with patch("zomma_kg.mcp.server.get_kg", return_value=mock_kg):
+        with patch("vanna_kg.mcp.server.get_kg", return_value=mock_kg):
             result = await cmd_search(
                 ["-entity", "Apple Inc", "-topic", "Inflation", "--mode", "between"]
             )
@@ -374,17 +374,17 @@ class TestSearchCommand:
 
     @pytest.mark.asyncio
     async def test_search_rejects_legacy_to_flag(self):
-        from zomma_kg.mcp.server import cmd_search
+        from vanna_kg.mcp.server import cmd_search
 
         mock_kg = AsyncMock()
-        with patch("zomma_kg.mcp.server.get_kg", return_value=mock_kg):
+        with patch("vanna_kg.mcp.server.get_kg", return_value=mock_kg):
             result = await cmd_search(["-entity", "Apple Inc", "-to", "Inflation"])
 
         assert result.startswith("Usage: search -entity <names> and/or -topic <names>")
 
     @pytest.mark.asyncio
     async def test_cat_session_index_behavior_unchanged(self):
-        from zomma_kg.mcp.server import cmd_cat, cmd_search
+        from vanna_kg.mcp.server import cmd_cat, cmd_search
 
         first_batch = [
             _make_fact("fact-a", "Apple Inc", "AFFECTS", "Inflation", chunk_uuid="chunk-a"),
@@ -420,7 +420,7 @@ class TestSearchCommand:
         mock_kg._storage = mock_storage
         mock_kg._embeddings = MagicMock()
 
-        with patch("zomma_kg.mcp.server.get_kg", return_value=mock_kg):
+        with patch("vanna_kg.mcp.server.get_kg", return_value=mock_kg):
             await cmd_search(["-entity", "Apple Inc"])
             first_cat = await cmd_cat(["2"])
             await cmd_search(["-entity", "Apple Inc"])
@@ -435,7 +435,7 @@ class TestLsCommand:
 
     @pytest.mark.asyncio
     async def test_ls_entities(self):
-        from zomma_kg.mcp.server import cmd_ls
+        from vanna_kg.mcp.server import cmd_ls
 
         mock_entity = MagicMock()
         mock_entity.name = "Apple Inc"
@@ -444,7 +444,7 @@ class TestLsCommand:
         mock_kg = AsyncMock()
         mock_kg.get_entities = AsyncMock(return_value=[mock_entity])
 
-        with patch("zomma_kg.mcp.server.get_kg", return_value=mock_kg):
+        with patch("vanna_kg.mcp.server.get_kg", return_value=mock_kg):
             result = await cmd_ls(["entities"])
 
         assert "ENTITIES:" in result
@@ -452,7 +452,7 @@ class TestLsCommand:
 
     @pytest.mark.asyncio
     async def test_ls_documents(self):
-        from zomma_kg.mcp.server import cmd_ls
+        from vanna_kg.mcp.server import cmd_ls
 
         mock_doc = MagicMock()
         mock_doc.name = "report.pdf"
@@ -461,7 +461,7 @@ class TestLsCommand:
         mock_kg = AsyncMock()
         mock_kg.get_documents = AsyncMock(return_value=[mock_doc])
 
-        with patch("zomma_kg.mcp.server.get_kg", return_value=mock_kg):
+        with patch("vanna_kg.mcp.server.get_kg", return_value=mock_kg):
             result = await cmd_ls(["documents"])
 
         assert "DOCUMENTS:" in result

@@ -13,14 +13,14 @@
 ## Task 1: Add New Types to results.py
 
 **Files:**
-- Modify: `zomma_kg/types/results.py`
+- Modify: `vanna_kg/types/results.py`
 - Test: `tests/test_types.py` (new file)
 
 **Step 1.1: Create tests directory and test file**
 
 Create `tests/__init__.py`:
 ```python
-"""ZommaKG test suite."""
+"""VannaKG test suite."""
 ```
 
 Create `tests/test_types.py`:
@@ -30,7 +30,7 @@ Create `tests/test_types.py`:
 import pytest
 from pydantic import ValidationError
 
-from zomma_kg.types.results import (
+from vanna_kg.types.results import (
     MergeRecord,
     CanonicalEntity,
     EntityDeduplicationOutput,
@@ -133,7 +133,7 @@ Expected: FAIL with import errors (types don't exist yet)
 
 **Step 1.3: Add types to results.py**
 
-Add these classes to the end of `zomma_kg/types/results.py` (before the closing of the file):
+Add these classes to the end of `vanna_kg/types/results.py` (before the closing of the file):
 
 ```python
 # -----------------------------------------------------------------------------
@@ -200,9 +200,9 @@ class EntityDeduplicationOutput(BaseModel):
 
 **Step 1.4: Add import for EntityTypeLabel at top of results.py**
 
-Modify the import line at top of `zomma_kg/types/results.py`:
+Modify the import line at top of `vanna_kg/types/results.py`:
 ```python
-from zomma_kg.types.entities import EntityGroup, EnumeratedEntity, EntityTypeLabel
+from vanna_kg.types.entities import EntityGroup, EnumeratedEntity, EntityTypeLabel
 ```
 
 **Step 1.5: Run test to verify it passes**
@@ -215,7 +215,7 @@ Expected: PASS (all 6 tests)
 ## Task 2: Create entity_dedup.py Skeleton with Embedding Helper
 
 **Files:**
-- Create: `zomma_kg/ingestion/resolution/entity_dedup.py`
+- Create: `vanna_kg/ingestion/resolution/entity_dedup.py`
 - Create: `tests/test_entity_dedup.py`
 
 **Step 2.1: Create test file for embedding generation**
@@ -227,7 +227,7 @@ Create `tests/test_entity_dedup.py`:
 import numpy as np
 import pytest
 
-from zomma_kg.types.entities import EnumeratedEntity
+from vanna_kg.types.entities import EnumeratedEntity
 
 
 class TestEmbeddingTextGeneration:
@@ -235,7 +235,7 @@ class TestEmbeddingTextGeneration:
 
     def test_embedding_text_with_summary(self):
         """Embedding text includes name and summary."""
-        from zomma_kg.ingestion.resolution.entity_dedup import _embedding_text
+        from vanna_kg.ingestion.resolution.entity_dedup import _embedding_text
 
         entity = EnumeratedEntity(
             name="Apple Inc.",
@@ -247,7 +247,7 @@ class TestEmbeddingTextGeneration:
 
     def test_embedding_text_without_summary(self):
         """Embedding text falls back to name only."""
-        from zomma_kg.ingestion.resolution.entity_dedup import _embedding_text
+        from vanna_kg.ingestion.resolution.entity_dedup import _embedding_text
 
         entity = EnumeratedEntity(
             name="AAPL",
@@ -259,7 +259,7 @@ class TestEmbeddingTextGeneration:
 
     def test_embedding_text_whitespace_summary(self):
         """Whitespace-only summary treated as empty."""
-        from zomma_kg.ingestion.resolution.entity_dedup import _embedding_text
+        from vanna_kg.ingestion.resolution.entity_dedup import _embedding_text
 
         entity = EnumeratedEntity(
             name="Apple",
@@ -277,18 +277,18 @@ Expected: FAIL with import error
 
 **Step 2.3: Create entity_dedup.py with embedding helper**
 
-Create `zomma_kg/ingestion/resolution/entity_dedup.py`:
+Create `vanna_kg/ingestion/resolution/entity_dedup.py`:
 ```python
 """
 In-Document Entity Deduplication
 
-Phase 2a-c of the ZommaKG ingestion pipeline.
+Phase 2a-c of the VannaKG ingestion pipeline.
 
 Merges entity mentions that refer to the same real-world entity within
 a single document using embedding similarity + LLM verification.
 
 Example:
-    >>> from zomma_kg.ingestion.resolution import deduplicate_entities
+    >>> from vanna_kg.ingestion.resolution import deduplicate_entities
     >>> result = await deduplicate_entities(entities, llm, embeddings)
     >>> print(f"Reduced to {len(result.canonical_entities)} canonical entities")
 """
@@ -297,11 +297,11 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from zomma_kg.types.entities import EnumeratedEntity
+from vanna_kg.types.entities import EnumeratedEntity
 
 if TYPE_CHECKING:
-    from zomma_kg.providers.base import EmbeddingProvider, LLMProvider
-    from zomma_kg.types.results import EntityDeduplicationOutput
+    from vanna_kg.providers.base import EmbeddingProvider, LLMProvider
+    from vanna_kg.types.results import EntityDeduplicationOutput
 
 
 # -----------------------------------------------------------------------------
@@ -333,7 +333,7 @@ Expected: PASS (3 tests)
 ## Task 3: Implement Similarity Matrix Computation
 
 **Files:**
-- Modify: `zomma_kg/ingestion/resolution/entity_dedup.py`
+- Modify: `vanna_kg/ingestion/resolution/entity_dedup.py`
 - Modify: `tests/test_entity_dedup.py`
 
 **Step 3.1: Add tests for similarity matrix**
@@ -345,7 +345,7 @@ class TestSimilarityMatrix:
 
     def test_similarity_matrix_shape(self):
         """Similarity matrix is n x n."""
-        from zomma_kg.ingestion.resolution.entity_dedup import _compute_similarity_matrix
+        from vanna_kg.ingestion.resolution.entity_dedup import _compute_similarity_matrix
 
         vectors = [
             [1.0, 0.0, 0.0],
@@ -357,7 +357,7 @@ class TestSimilarityMatrix:
 
     def test_similarity_matrix_diagonal_ones(self):
         """Diagonal elements are 1.0 (self-similarity)."""
-        from zomma_kg.ingestion.resolution.entity_dedup import _compute_similarity_matrix
+        from vanna_kg.ingestion.resolution.entity_dedup import _compute_similarity_matrix
 
         vectors = [
             [1.0, 0.0],
@@ -369,7 +369,7 @@ class TestSimilarityMatrix:
 
     def test_similarity_matrix_orthogonal_zero(self):
         """Orthogonal vectors have zero similarity."""
-        from zomma_kg.ingestion.resolution.entity_dedup import _compute_similarity_matrix
+        from vanna_kg.ingestion.resolution.entity_dedup import _compute_similarity_matrix
 
         vectors = [
             [1.0, 0.0],
@@ -381,7 +381,7 @@ class TestSimilarityMatrix:
 
     def test_similarity_matrix_identical_vectors(self):
         """Identical vectors have similarity 1.0."""
-        from zomma_kg.ingestion.resolution.entity_dedup import _compute_similarity_matrix
+        from vanna_kg.ingestion.resolution.entity_dedup import _compute_similarity_matrix
 
         vectors = [
             [0.6, 0.8],
@@ -392,7 +392,7 @@ class TestSimilarityMatrix:
 
     def test_similarity_matrix_symmetric(self):
         """Similarity matrix is symmetric."""
-        from zomma_kg.ingestion.resolution.entity_dedup import _compute_similarity_matrix
+        from vanna_kg.ingestion.resolution.entity_dedup import _compute_similarity_matrix
 
         vectors = [
             [1.0, 2.0, 3.0],
@@ -412,7 +412,7 @@ Expected: FAIL with import error
 
 **Step 3.3: Implement similarity matrix computation**
 
-Add to `zomma_kg/ingestion/resolution/entity_dedup.py`:
+Add to `vanna_kg/ingestion/resolution/entity_dedup.py`:
 ```python
 import numpy as np
 
@@ -460,7 +460,7 @@ Expected: PASS (5 tests)
 ## Task 4: Implement Similarity Ordering (Greedy BFS)
 
 **Files:**
-- Modify: `zomma_kg/ingestion/resolution/entity_dedup.py`
+- Modify: `vanna_kg/ingestion/resolution/entity_dedup.py`
 - Modify: `tests/test_entity_dedup.py`
 
 **Step 4.1: Add tests for similarity ordering**
@@ -472,7 +472,7 @@ class TestSimilarityOrder:
 
     def test_similarity_order_returns_all_indices(self):
         """All indices are included in the ordering."""
-        from zomma_kg.ingestion.resolution.entity_dedup import _similarity_order
+        from vanna_kg.ingestion.resolution.entity_dedup import _similarity_order
 
         # 4 entities with varying similarities
         similarity = np.array([
@@ -487,7 +487,7 @@ class TestSimilarityOrder:
 
     def test_similarity_order_starts_at_zero(self):
         """Ordering starts at index 0."""
-        from zomma_kg.ingestion.resolution.entity_dedup import _similarity_order
+        from vanna_kg.ingestion.resolution.entity_dedup import _similarity_order
 
         similarity = np.array([
             [1.0, 0.5, 0.5],
@@ -499,7 +499,7 @@ class TestSimilarityOrder:
 
     def test_similarity_order_groups_similar(self):
         """Similar entities end up adjacent in the ordering."""
-        from zomma_kg.ingestion.resolution.entity_dedup import _similarity_order
+        from vanna_kg.ingestion.resolution.entity_dedup import _similarity_order
 
         # Entities 0,1 are similar; entities 2,3 are similar
         similarity = np.array([
@@ -522,7 +522,7 @@ class TestSimilarityOrder:
 
     def test_similarity_order_single_element(self):
         """Single element returns [0]."""
-        from zomma_kg.ingestion.resolution.entity_dedup import _similarity_order
+        from vanna_kg.ingestion.resolution.entity_dedup import _similarity_order
 
         similarity = np.array([[1.0]])
         order = _similarity_order(1, similarity)
@@ -536,7 +536,7 @@ Expected: FAIL with import error
 
 **Step 4.3: Implement similarity ordering**
 
-Add to `zomma_kg/ingestion/resolution/entity_dedup.py`:
+Add to `vanna_kg/ingestion/resolution/entity_dedup.py`:
 ```python
 def _similarity_order(n: int, similarity_matrix: np.ndarray) -> list[int]:
     """
@@ -592,7 +592,7 @@ Expected: PASS (4 tests)
 ## Task 5: Implement LLM Verification for Small Clusters
 
 **Files:**
-- Modify: `zomma_kg/ingestion/resolution/entity_dedup.py`
+- Modify: `vanna_kg/ingestion/resolution/entity_dedup.py`
 - Modify: `tests/test_entity_dedup.py`
 
 **Step 5.1: Add tests for LLM verification (with mock)**
@@ -608,8 +608,8 @@ class TestVerifyCluster:
     @pytest.mark.asyncio
     async def test_verify_cluster_calls_llm(self):
         """verify_cluster calls LLM with correct prompt structure."""
-        from zomma_kg.ingestion.resolution.entity_dedup import _verify_cluster
-        from zomma_kg.types.results import EntityDedupeResult, EntityGroup
+        from vanna_kg.ingestion.resolution.entity_dedup import _verify_cluster
+        from vanna_kg.types.results import EntityDedupeResult, EntityGroup
 
         entities = [
             EnumeratedEntity(name="Apple Inc.", entity_type="Company", summary="Tech company"),
@@ -643,8 +643,8 @@ class TestVerifyCluster:
     @pytest.mark.asyncio
     async def test_verify_cluster_includes_all_entities_in_prompt(self):
         """Prompt includes all entities with indices."""
-        from zomma_kg.ingestion.resolution.entity_dedup import _verify_cluster
-        from zomma_kg.types.results import EntityDedupeResult
+        from vanna_kg.ingestion.resolution.entity_dedup import _verify_cluster
+        from vanna_kg.types.results import EntityDedupeResult
 
         entities = [
             EnumeratedEntity(name="A", entity_type="Company", summary="First"),
@@ -674,9 +674,9 @@ Expected: FAIL with import error
 
 **Step 5.3: Implement LLM verification prompts and function**
 
-Add to `zomma_kg/ingestion/resolution/entity_dedup.py`:
+Add to `vanna_kg/ingestion/resolution/entity_dedup.py`:
 ```python
-from zomma_kg.types.results import EntityDedupeResult
+from vanna_kg.types.results import EntityDedupeResult
 
 # -----------------------------------------------------------------------------
 # LLM Prompts
@@ -756,7 +756,7 @@ async def _verify_cluster(
 Also update the TYPE_CHECKING imports:
 ```python
 if TYPE_CHECKING:
-    from zomma_kg.providers.base import EmbeddingProvider, LLMProvider
+    from vanna_kg.providers.base import EmbeddingProvider, LLMProvider
 ```
 
 **Step 5.4: Run test to verify it passes**
@@ -769,7 +769,7 @@ Expected: PASS (2 tests)
 ## Task 6: Implement Large Cluster Batching
 
 **Files:**
-- Modify: `zomma_kg/ingestion/resolution/entity_dedup.py`
+- Modify: `vanna_kg/ingestion/resolution/entity_dedup.py`
 - Modify: `tests/test_entity_dedup.py`
 
 **Step 6.1: Add tests for batch splitting**
@@ -781,7 +781,7 @@ class TestCreateOverlappingBatches:
 
     def test_small_cluster_single_batch(self):
         """Cluster smaller than batch size returns single batch."""
-        from zomma_kg.ingestion.resolution.entity_dedup import _create_overlapping_batches
+        from vanna_kg.ingestion.resolution.entity_dedup import _create_overlapping_batches
 
         indices = [0, 1, 2, 3, 4]
         batches = _create_overlapping_batches(indices, max_batch_size=15, overlap=5)
@@ -790,7 +790,7 @@ class TestCreateOverlappingBatches:
 
     def test_exact_batch_size_single_batch(self):
         """Cluster exactly at batch size returns single batch."""
-        from zomma_kg.ingestion.resolution.entity_dedup import _create_overlapping_batches
+        from vanna_kg.ingestion.resolution.entity_dedup import _create_overlapping_batches
 
         indices = list(range(15))
         batches = _create_overlapping_batches(indices, max_batch_size=15, overlap=5)
@@ -798,7 +798,7 @@ class TestCreateOverlappingBatches:
 
     def test_large_cluster_multiple_batches(self):
         """Large cluster splits into overlapping batches."""
-        from zomma_kg.ingestion.resolution.entity_dedup import _create_overlapping_batches
+        from vanna_kg.ingestion.resolution.entity_dedup import _create_overlapping_batches
 
         indices = list(range(25))
         batches = _create_overlapping_batches(indices, max_batch_size=15, overlap=5)
@@ -812,7 +812,7 @@ class TestCreateOverlappingBatches:
 
     def test_batches_cover_all_indices(self):
         """All indices appear in at least one batch."""
-        from zomma_kg.ingestion.resolution.entity_dedup import _create_overlapping_batches
+        from vanna_kg.ingestion.resolution.entity_dedup import _create_overlapping_batches
 
         indices = list(range(40))
         batches = _create_overlapping_batches(indices, max_batch_size=15, overlap=5)
@@ -824,7 +824,7 @@ class TestCreateOverlappingBatches:
 
     def test_overlap_between_consecutive_batches(self):
         """Consecutive batches have specified overlap."""
-        from zomma_kg.ingestion.resolution.entity_dedup import _create_overlapping_batches
+        from vanna_kg.ingestion.resolution.entity_dedup import _create_overlapping_batches
 
         indices = list(range(30))
         batches = _create_overlapping_batches(indices, max_batch_size=15, overlap=5)
@@ -841,7 +841,7 @@ Expected: FAIL with import error
 
 **Step 6.3: Implement batch splitting**
 
-Add to `zomma_kg/ingestion/resolution/entity_dedup.py`:
+Add to `vanna_kg/ingestion/resolution/entity_dedup.py`:
 ```python
 def _create_overlapping_batches(
     indices: list[int],
@@ -890,7 +890,7 @@ Expected: PASS (5 tests)
 ## Task 7: Implement Batch Result Merging
 
 **Files:**
-- Modify: `zomma_kg/ingestion/resolution/entity_dedup.py`
+- Modify: `vanna_kg/ingestion/resolution/entity_dedup.py`
 - Modify: `tests/test_entity_dedup.py`
 
 **Step 7.1: Add tests for merging batch results**
@@ -902,8 +902,8 @@ class TestMergeBatchResults:
 
     def test_merge_non_overlapping_groups(self):
         """Groups with no overlapping entities stay separate."""
-        from zomma_kg.ingestion.resolution.entity_dedup import _merge_batch_results
-        from zomma_kg.types.results import EntityDedupeResult, EntityGroup
+        from vanna_kg.ingestion.resolution.entity_dedup import _merge_batch_results
+        from vanna_kg.types.results import EntityDedupeResult, EntityGroup
 
         batch_results = [
             (
@@ -949,8 +949,8 @@ class TestMergeBatchResults:
 
     def test_merge_keeps_entity_in_first_group(self):
         """Overlapping entity stays in first-assigned group."""
-        from zomma_kg.ingestion.resolution.entity_dedup import _merge_batch_results
-        from zomma_kg.types.results import EntityDedupeResult, EntityGroup
+        from vanna_kg.ingestion.resolution.entity_dedup import _merge_batch_results
+        from vanna_kg.types.results import EntityDedupeResult, EntityGroup
 
         entities = [
             EnumeratedEntity(name="Apple Inc.", entity_type="Company", summary="Tech"),
@@ -994,7 +994,7 @@ Expected: FAIL with import error
 
 **Step 7.3: Implement batch result merging**
 
-Add to `zomma_kg/ingestion/resolution/entity_dedup.py`:
+Add to `vanna_kg/ingestion/resolution/entity_dedup.py`:
 ```python
 def _merge_batch_results(
     batch_results: list[tuple[list[int], EntityDedupeResult]],
@@ -1075,7 +1075,7 @@ Expected: PASS (2 tests)
 ## Task 8: Implement Main deduplicate_entities Function
 
 **Files:**
-- Modify: `zomma_kg/ingestion/resolution/entity_dedup.py`
+- Modify: `vanna_kg/ingestion/resolution/entity_dedup.py`
 - Modify: `tests/test_entity_dedup.py`
 
 **Step 8.1: Add integration tests**
@@ -1088,7 +1088,7 @@ class TestDeduplicateEntities:
     @pytest.mark.asyncio
     async def test_empty_input(self):
         """Empty entity list returns empty output."""
-        from zomma_kg.ingestion.resolution.entity_dedup import deduplicate_entities
+        from vanna_kg.ingestion.resolution.entity_dedup import deduplicate_entities
 
         mock_llm = MagicMock()
         mock_embeddings = MagicMock()
@@ -1102,7 +1102,7 @@ class TestDeduplicateEntities:
     @pytest.mark.asyncio
     async def test_single_entity(self):
         """Single entity passes through with UUID assigned."""
-        from zomma_kg.ingestion.resolution.entity_dedup import deduplicate_entities
+        from vanna_kg.ingestion.resolution.entity_dedup import deduplicate_entities
 
         entities = [
             EnumeratedEntity(name="Apple Inc.", entity_type="Company", summary="Tech")
@@ -1122,8 +1122,8 @@ class TestDeduplicateEntities:
     @pytest.mark.asyncio
     async def test_merges_similar_entities(self):
         """Similar entities get merged based on LLM decision."""
-        from zomma_kg.ingestion.resolution.entity_dedup import deduplicate_entities
-        from zomma_kg.types.results import EntityDedupeResult, EntityGroup
+        from vanna_kg.ingestion.resolution.entity_dedup import deduplicate_entities
+        from vanna_kg.types.results import EntityDedupeResult, EntityGroup
 
         entities = [
             EnumeratedEntity(name="Apple Inc.", entity_type="Company", summary="Tech"),
@@ -1171,7 +1171,7 @@ class TestDeduplicateEntities:
     @pytest.mark.asyncio
     async def test_respects_similarity_threshold(self):
         """Entities below threshold are not clustered."""
-        from zomma_kg.ingestion.resolution.entity_dedup import deduplicate_entities
+        from vanna_kg.ingestion.resolution.entity_dedup import deduplicate_entities
 
         entities = [
             EnumeratedEntity(name="A", entity_type="Company", summary=""),
@@ -1205,17 +1205,17 @@ Expected: FAIL with import error
 
 **Step 8.3: Implement main function**
 
-Add to `zomma_kg/ingestion/resolution/entity_dedup.py`:
+Add to `vanna_kg/ingestion/resolution/entity_dedup.py`:
 ```python
 import uuid as uuid_module
 
-from zomma_kg.types.results import (
+from vanna_kg.types.results import (
     CanonicalEntity,
     EntityDedupeResult,
     EntityDeduplicationOutput,
     MergeRecord,
 )
-from zomma_kg.utils.clustering import union_find_components
+from vanna_kg.utils.clustering import union_find_components
 
 
 async def deduplicate_entities(
@@ -1410,12 +1410,12 @@ Expected: PASS (4 tests)
 ## Task 9: Update Module Exports
 
 **Files:**
-- Modify: `zomma_kg/ingestion/resolution/__init__.py`
-- Modify: `zomma_kg/types/results.py` (ensure exports)
+- Modify: `vanna_kg/ingestion/resolution/__init__.py`
+- Modify: `vanna_kg/types/results.py` (ensure exports)
 
 **Step 9.1: Update resolution __init__.py**
 
-Replace contents of `zomma_kg/ingestion/resolution/__init__.py`:
+Replace contents of `vanna_kg/ingestion/resolution/__init__.py`:
 ```python
 """
 Entity and Topic Resolution
@@ -1448,7 +1448,7 @@ Key Principle: Subsidiary Awareness
 See: docs/pipeline/DEDUPLICATION_SYSTEM.md
 """
 
-from zomma_kg.ingestion.resolution.entity_dedup import deduplicate_entities
+from vanna_kg.ingestion.resolution.entity_dedup import deduplicate_entities
 
 __all__ = ["deduplicate_entities"]
 ```
@@ -1480,10 +1480,10 @@ import asyncio
 
 from dotenv import load_dotenv
 
-from zomma_kg.ingestion.resolution import deduplicate_entities
-from zomma_kg.providers.llm.openai import OpenAILLMProvider
-from zomma_kg.providers.embedding.openai import OpenAIEmbeddingProvider
-from zomma_kg.types.entities import EnumeratedEntity
+from vanna_kg.ingestion.resolution import deduplicate_entities
+from vanna_kg.providers.llm.openai import OpenAILLMProvider
+from vanna_kg.providers.embedding.openai import OpenAIEmbeddingProvider
+from vanna_kg.types.entities import EnumeratedEntity
 
 load_dotenv()
 

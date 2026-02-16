@@ -87,17 +87,17 @@ Businesses -[EXPRESSED_CONCERN_ABOUT, chunk_uuid=Chunk123]-> Tariffs
 
 ### Phase 1: Schema & Storage Layer
 
-#### 1.1 `zomma_kg/storage/parquet/backend.py`
+#### 1.1 `vanna_kg/storage/parquet/backend.py`
 - [ ] Update `RELATIONSHIP_SCHEMA` to add `chunk_uuid` field
 - [ ] Update `write_relationships()` to handle new schema
 
-#### 1.2 `zomma_kg/storage/README.md`
+#### 1.2 `vanna_kg/storage/README.md`
 - [ ] Update relationship schema documentation
 - [ ] Update query examples
 
 ### Phase 2: Assembly Layer
 
-#### 2.1 `zomma_kg/ingestion/assembly/assembler.py`
+#### 2.1 `vanna_kg/ingestion/assembly/assembler.py`
 - [ ] Rewrite `_build_relationships()` to create single edges:
   ```python
   def _build_relationships(self, input: AssemblyInput) -> list[dict]:
@@ -123,7 +123,7 @@ Businesses -[EXPRESSED_CONCERN_ABOUT, chunk_uuid=Chunk123]-> Tariffs
 - [ ] Remove topic-specific DISCUSSES relationship creation
 - [ ] Add helper to determine if object is entity or topic
 
-#### 2.2 `zomma_kg/types/results.py`
+#### 2.2 `vanna_kg/types/results.py`
 - [ ] Remove `topic_chunk_mappings` from `AssemblyInput` (no longer needed)
 
 #### 2.3 `scripts/build_kg.py`
@@ -133,7 +133,7 @@ Businesses -[EXPRESSED_CONCERN_ABOUT, chunk_uuid=Chunk123]-> Tariffs
 
 ### Phase 3: Query Layer
 
-#### 3.1 `zomma_kg/storage/duckdb/queries.py`
+#### 3.1 `vanna_kg/storage/duckdb/queries.py`
 
 **Update `get_entity_chunks()`:**
 ```python
@@ -203,7 +203,7 @@ async def get_entity_neighbors(self, entity_name: str, limit: int = 20):
     """, [group_id, group_id, entity_name, group_id, limit])
 ```
 
-#### 3.2 `zomma_kg/storage/base.py`
+#### 3.2 `vanna_kg/storage/base.py`
 - [ ] Update docstrings for query methods to reflect new structure
 
 ### Phase 4: Testing & Validation

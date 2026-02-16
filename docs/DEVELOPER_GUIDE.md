@@ -1,10 +1,10 @@
-# ZommaKG Developer Guide
+# VannaKG Developer Guide
 
-This guide documents the public API and recommended usage patterns for the ZommaKG Python package.
-It is based on the current code in `zomma_kg/api`, `zomma_kg/config`, `zomma_kg/types`, and the CLI.
+This guide documents the public API and recommended usage patterns for the VannaKG Python package.
+It is based on the current code in `vanna_kg/api`, `vanna_kg/config`, `vanna_kg/types`, and the CLI.
 
 **Audience**
-Developers integrating ZommaKG into applications, scripts, or pipelines.
+Developers integrating VannaKG into applications, scripts, or pipelines.
 
 **Status Notes**
 - `KGShell` is a placeholder and not implemented.
@@ -17,17 +17,17 @@ Developers integrating ZommaKG into applications, scripts, or pipelines.
 Core package:
 
 ```bash
-pip install zomma-kg
+pip install vanna-kg
 ```
 
 Recommended extras:
 
 ```bash
 # OpenAI LLM + embeddings (required for ingestion + query)
-pip install "zomma-kg[openai]"
+pip install "vanna-kg[openai]"
 
 # Google Gemini for PDF -> Markdown conversion
-pip install "zomma-kg[google]"
+pip install "vanna-kg[google]"
 ```
 
 Environment variables:
@@ -42,7 +42,7 @@ export GOOGLE_API_KEY="..."  # required for PDF ingestion
 Async API:
 
 ```python
-from zomma_kg import KnowledgeGraph
+from vanna_kg import KnowledgeGraph
 
 kg = KnowledgeGraph("./my_kb")
 
@@ -58,7 +58,7 @@ print(answer.answer)
 Sync API:
 
 ```python
-from zomma_kg import KnowledgeGraph
+from vanna_kg import KnowledgeGraph
 
 kg = KnowledgeGraph("./my_kb")
 kg.ingest_pdf_sync("report.pdf")
@@ -69,7 +69,7 @@ print(result.answer)
 Convenience functions (short scripts / REPL):
 
 ```python
-from zomma_kg import ingest_pdf, query
+from vanna_kg import ingest_pdf, query
 
 ingest_pdf("report.pdf", kb="./my_kb")
 result = query("What were the key findings?", kb="./my_kb")
@@ -97,7 +97,7 @@ Primary entry point for ingestion, query, search, and KB statistics.
 Constructor:
 
 ```python
-from zomma_kg import KnowledgeGraph, KGConfig
+from vanna_kg import KnowledgeGraph, KGConfig
 
 config = KGConfig(llm_model="gpt-5.1", embedding_model="text-embedding-3-large")
 kg = KnowledgeGraph("./my_kb", config=config, create=True)
@@ -192,7 +192,7 @@ You can inspect decomposition with `decompose()`.
 Programmatic:
 
 ```python
-from zomma_kg import KGConfig
+from vanna_kg import KGConfig
 
 config = KGConfig(
     llm_provider="openai",
@@ -204,11 +204,11 @@ config = KGConfig(
 ```
 
 Environment variables:
-- `ZOMMA_LLM_PROVIDER`
-- `ZOMMA_LLM_MODEL`
-- `ZOMMA_EMBEDDING_PROVIDER`
-- `ZOMMA_EXTRACTION_CONCURRENCY`
-- `ZOMMA_REGISTRY_CONCURRENCY`
+- `VANNA_LLM_PROVIDER`
+- `VANNA_LLM_MODEL`
+- `VANNA_EMBEDDING_PROVIDER`
+- `VANNA_EXTRACTION_CONCURRENCY`
+- `VANNA_REGISTRY_CONCURRENCY`
 - `OPENAI_API_KEY`
 - `ANTHROPIC_API_KEY`
 - `GOOGLE_API_KEY`
@@ -217,7 +217,7 @@ Environment variables:
 TOML configuration:
 
 ```python
-from zomma_kg import KGConfig
+from vanna_kg import KGConfig
 
 config = KGConfig.from_file("./kg.toml")
 kg = KnowledgeGraph("./kb", config=config)
@@ -241,7 +241,7 @@ registry_concurrency = 10
 
 ## Data Model Overview
 
-Key persisted types are defined in `zomma_kg/types`.
+Key persisted types are defined in `vanna_kg/types`.
 
 - `Document`: document metadata
 - `Chunk`: source text segments with header context
@@ -268,36 +268,36 @@ A knowledge base directory contains:
 
 ## CLI Usage
 
-Entry point: `zomma-kg`
+Entry point: `vanna-kg`
 
 Ingest a file:
 
 ```bash
-zomma-kg ingest report.pdf --kb ./my_kb
+vanna-kg ingest report.pdf --kb ./my_kb
 ```
 
 Ingest a directory:
 
 ```bash
-zomma-kg ingest ./documents --kb ./my_kb --pattern "**/*.pdf"
+vanna-kg ingest ./documents --kb ./my_kb --pattern "**/*.pdf"
 ```
 
 Query:
 
 ```bash
-zomma-kg query "What were the findings?" --kb ./my_kb --sources
+vanna-kg query "What were the findings?" --kb ./my_kb --sources
 ```
 
 Stats:
 
 ```bash
-zomma-kg info --kb ./my_kb
+vanna-kg info --kb ./my_kb
 ```
 
 Shell:
 
 ```bash
-zomma-kg shell --kb ./my_kb
+vanna-kg shell --kb ./my_kb
 ```
 
 The shell is currently a placeholder and prints a “not implemented” message.
@@ -315,7 +315,7 @@ If you need any of these features, confirm roadmap priority before relying on th
 ## Troubleshooting
 
 Common issues:
-- `ImportError: langchain-openai`: install `zomma-kg[openai]`.
+- `ImportError: langchain-openai`: install `vanna-kg[openai]`.
 - `ValueError: Google API key required`: set `GOOGLE_API_KEY` or pass `api_key` when ingesting PDFs.
 - `RuntimeError: This event loop is already running`: use async API instead of sync wrappers inside async apps.
 
@@ -323,7 +323,7 @@ Common issues:
 
 ```python
 import asyncio
-from zomma_kg import KnowledgeGraph, KGConfig
+from vanna_kg import KnowledgeGraph, KGConfig
 
 async def main() -> None:
     config = KGConfig(llm_model="gpt-5.1", embedding_model="text-embedding-3-large")

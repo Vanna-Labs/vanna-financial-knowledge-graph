@@ -1,8 +1,8 @@
-# ZommaKG Development Plan
+# VannaKG Development Plan
 
 ## Executive Summary
 
-This document outlines a phased development plan for implementing the ZommaKG Python package - an embedded knowledge graph library with zero infrastructure requirements. The package transforms the existing Neo4j-based system into a pip-installable library using DuckDB, LanceDB, and Parquet for storage.
+This document outlines a phased development plan for implementing the VannaKG Python package - an embedded knowledge graph library with zero infrastructure requirements. The package transforms the existing Neo4j-based system into a pip-installable library using DuckDB, LanceDB, and Parquet for storage.
 
 ## Architecture Overview
 
@@ -38,7 +38,7 @@ This document outlines a phased development plan for implementing the ZommaKG Py
 - `types/topics.py` - Topic, TopicResolution, TopicDefinition, BatchTopicDefinitions ✅
 - `types/results.py` - QueryResult, IngestResult, SearchResult, ExtractionResult, CritiqueResult, ChainOfThoughtResult, EntityDedupeResult, QuestionType, EntityHint, SubQuery, QueryDecomposition, DateExtraction, CanonicalEntity, EntityDeduplicationOutput, MergeRecord ✅
 
-**Ported from**: `ZommaLabsKG/zomma_kg/schemas/extraction.py`, `query/shared_schemas.py`, `query/schemas.py`
+**Ported from**: `VannaLabsKG/vanna_kg/schemas/extraction.py`, `query/shared_schemas.py`, `query/schemas.py`
 
 **Deliverable**: 31 Pydantic models with full type hints, validated with mypy. ✅
 
@@ -52,7 +52,7 @@ This document outlines a phased development plan for implementing the ZommaKG Py
 - `config/settings.py` - KGConfig class with env + TOML file + programmatic overrides ✅
 
 **Key features**:
-- Environment variables: `ZOMMA_*` prefix ✅
+- Environment variables: `VANNA_*` prefix ✅
 - TOML config file support: `from_file()` and `to_file()` ✅
 - Programmatic overrides via constructor kwargs ✅
 - Python 3.10 (tomli) and 3.11+ (tomllib) support ✅
@@ -174,7 +174,7 @@ class StorageBackend(ABC):
 - `markdown.py` - Markdown → Chunks (header-aware)
 - `text.py` - Plain text chunking
 
-**Port from**: `ZommaLabsKG/zomma_kg/chunker/`
+**Port from**: `VannaLabsKG/vanna_kg/chunker/`
 
 **Algorithm**:
 1. PDF → Markdown via Gemini 2.5 Pro vision
@@ -194,7 +194,7 @@ class StorageBackend(ABC):
 - `critique.py` - Quality assessment
 - `schemas.py` - Extraction Pydantic schemas
 
-**Port from**: `ZommaLabsKG/zomma_kg/pipeline/extractor.py`
+**Port from**: `VannaLabsKG/vanna_kg/pipeline/extractor.py`
 
 **Two-step extraction**:
 1. **Entity Enumeration**: Extract ALL entities (name, type, summary)
@@ -216,8 +216,8 @@ class StorageBackend(ABC):
 - `topic_resolver.py` - Topic ontology resolution ✅ COMPLETE
 
 **Port from**:
-- `ZommaLabsKG/zomma_kg/pipeline/entity_dedup.py`
-- `ZommaLabsKG/zomma_kg/pipeline/entity_registry.py`
+- `VannaLabsKG/vanna_kg/pipeline/entity_dedup.py`
+- `VannaLabsKG/vanna_kg/pipeline/entity_registry.py`
 
 **Deduplication algorithm** (implemented in `entity_dedup.py`):
 1. Generate embeddings (via embedding provider) ✅
@@ -278,7 +278,7 @@ class StorageBackend(ABC):
 **Files implemented**:
 - `assembler.py` - Write to storage ✅ COMPLETE
 
-**Port from**: `ZommaLabsKG/zomma_kg/pipeline/bulk_writer.py`
+**Port from**: `VannaLabsKG/vanna_kg/pipeline/bulk_writer.py`
 
 **Write order** (implemented):
 1. Documents ✅
@@ -322,7 +322,7 @@ class StorageBackend(ABC):
 - `context_builder.py` - Context assembly ✅
 - `types.py` - Pipeline types (PipelineResult, SubAnswer, StructuredContext) ✅
 
-**Port from**: `ZommaLabsKG/zomma_kg/query/`
+**Port from**: `VannaLabsKG/vanna_kg/query/`
 
 **Pipeline phases**:
 1. **Decompose**: Break question into sub-queries with entity/topic hints ✅
@@ -354,12 +354,12 @@ class StorageBackend(ABC):
 
 **Approach changed**: Instead of a virtual filesystem shell, we now expose a single
 MCP tool (`kg_execute`) that accepts command strings. This aligns with the skill
-definition in `zomma_kg/skills/kg-query/SKILL.md`.
+definition in `vanna_kg/skills/kg-query/SKILL.md`.
 
 **Files implemented**:
 - `mcp/__init__.py` - Module init ✅
 - `mcp/server.py` - MCP server with `kg_execute` tool ✅
-- `mcp/__main__.py` - Entry point for `python -m zomma_kg.mcp` ✅
+- `mcp/__main__.py` - Entry point for `python -m vanna_kg.mcp` ✅
 
 **Commands (via kg_execute tool)**:
 | Command | Purpose | Status |
@@ -377,14 +377,14 @@ Session state maintains search results so `cat 1` references previous search.
 **Usage**:
 ```bash
 # Run MCP server
-python -m zomma_kg.mcp --kb ./my_kb
+python -m vanna_kg.mcp --kb ./my_kb
 
 # Claude Desktop config
 {
     "mcpServers": {
-        "zomma-kg": {
+        "vanna-kg": {
             "command": "python",
-            "args": ["-m", "zomma_kg.mcp", "--kb", "./my_kb"]
+            "args": ["-m", "vanna_kg.mcp", "--kb", "./my_kb"]
         }
     }
 }
@@ -450,11 +450,11 @@ kg.query_sync("What were the findings?")
 
 **Commands**:
 ```bash
-zomma-kg ingest report.pdf --kb ./my_kb     # ✅ Implemented
-zomma-kg query "What were the risks?" --kb ./my_kb  # ✅ Implemented
-zomma-kg info --kb ./my_kb                  # ✅ Implemented
-zomma-kg shell --kb ./my_kb                 # ⏳ Placeholder (KGShell not implemented)
-zomma-kg export --format json --kb ./my_kb  # ❌ Not implemented
+vanna-kg ingest report.pdf --kb ./my_kb     # ✅ Implemented
+vanna-kg query "What were the risks?" --kb ./my_kb  # ✅ Implemented
+vanna-kg info --kb ./my_kb                  # ✅ Implemented
+vanna-kg shell --kb ./my_kb                 # ⏳ Placeholder (KGShell not implemented)
+vanna-kg export --format json --kb ./my_kb  # ❌ Not implemented
 ```
 
 **Deliverable**: CLI with core commands. ✅
@@ -631,7 +631,7 @@ The package is complete when:
 
 | Criterion | Description | Status |
 |-----------|-------------|--------|
-| **Zero infrastructure** | `pip install zomma-kg && python -c "from zomma_kg import KnowledgeGraph"` works | ✅ Ready |
+| **Zero infrastructure** | `pip install vanna-kg && python -c "from vanna_kg import KnowledgeGraph"` works | ✅ Ready |
 | **End-to-end** | Can ingest a PDF and answer questions about it | ✅ Working |
 | **Portable** | Knowledge base is a directory that can be zipped and shared | ✅ Working |
 | **Agent-friendly** | MCP server with kg_execute tool for LLM agents | ✅ Working |

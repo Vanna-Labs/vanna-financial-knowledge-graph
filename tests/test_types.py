@@ -3,8 +3,8 @@
 import pytest
 from pydantic import ValidationError
 
-from zomma_kg.types.entities import EnumeratedEntity
-from zomma_kg.types.results import (
+from vanna_kg.types.entities import EnumeratedEntity
+from vanna_kg.types.results import (
     AssemblyResult,
     CanonicalEntity,
     EntityDeduplicationOutput,
@@ -230,7 +230,7 @@ class TestTopicResolutionResult:
 
     def test_empty_result(self):
         """Empty result should have empty collections."""
-        from zomma_kg.types.topics import TopicResolutionResult
+        from vanna_kg.types.topics import TopicResolutionResult
 
         result = TopicResolutionResult()
         assert result.resolved_topics == []
@@ -239,7 +239,7 @@ class TestTopicResolutionResult:
 
     def test_result_with_data(self):
         """Result should correctly store all fields."""
-        from zomma_kg.types.topics import TopicResolution, TopicResolutionResult
+        from vanna_kg.types.topics import TopicResolution, TopicResolutionResult
 
         topic = TopicResolution(
             uuid="topic-uuid",
@@ -262,7 +262,7 @@ class TestTopicMatchTypes:
 
     def test_topic_match_decision_with_match(self):
         """TopicMatchDecision should store match decision."""
-        from zomma_kg.types.topics import TopicMatchDecision
+        from vanna_kg.types.topics import TopicMatchDecision
 
         decision = TopicMatchDecision(
             topic="M&A",
@@ -275,7 +275,7 @@ class TestTopicMatchTypes:
 
     def test_topic_match_decision_no_match(self):
         """TopicMatchDecision should allow null for no match."""
-        from zomma_kg.types.topics import TopicMatchDecision
+        from vanna_kg.types.topics import TopicMatchDecision
 
         decision = TopicMatchDecision(
             topic="Random Noise",
@@ -286,7 +286,7 @@ class TestTopicMatchTypes:
 
     def test_batch_topic_match_response(self):
         """BatchTopicMatchResponse should contain list of decisions."""
-        from zomma_kg.types.topics import BatchTopicMatchResponse, TopicMatchDecision
+        from vanna_kg.types.topics import BatchTopicMatchResponse, TopicMatchDecision
 
         decisions = [
             TopicMatchDecision(topic="M&A", selected_number=1, reasoning="Match."),

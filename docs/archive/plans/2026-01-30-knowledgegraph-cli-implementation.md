@@ -59,7 +59,7 @@ git commit -m "build: add typer[all] dependency for CLI"
 ## Task 2: Implement KnowledgeGraph Core Structure
 
 **Files:**
-- Modify: `zomma_kg/api/knowledge_graph.py`
+- Modify: `vanna_kg/api/knowledge_graph.py`
 
 **Step 1: Write the implementation**
 
@@ -105,15 +105,15 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, Callable
 
 if TYPE_CHECKING:
-    from zomma_kg.api.shell import KGShell
-    from zomma_kg.config.settings import KGConfig
-    from zomma_kg.providers.base import EmbeddingProvider, LLMProvider
-    from zomma_kg.query import GraphRAGPipeline
-    from zomma_kg.storage.parquet.backend import ParquetBackend
-    from zomma_kg.types.chunks import Chunk, Document
-    from zomma_kg.types.entities import Entity
-    from zomma_kg.types.facts import Fact
-    from zomma_kg.types.results import IngestResult, QueryResult
+    from vanna_kg.api.shell import KGShell
+    from vanna_kg.config.settings import KGConfig
+    from vanna_kg.providers.base import EmbeddingProvider, LLMProvider
+    from vanna_kg.query import GraphRAGPipeline
+    from vanna_kg.storage.parquet.backend import ParquetBackend
+    from vanna_kg.types.chunks import Chunk, Document
+    from vanna_kg.types.entities import Entity
+    from vanna_kg.types.facts import Fact
+    from vanna_kg.types.results import IngestResult, QueryResult
 
 
 class KnowledgeGraph:
@@ -138,7 +138,7 @@ class KnowledgeGraph:
 
         # Lazy import to avoid circular imports
         if config is None:
-            from zomma_kg.config import KGConfig
+            from vanna_kg.config import KGConfig
             config = KGConfig()
         self._config = config
 
@@ -161,7 +161,7 @@ class KnowledgeGraph:
             raise FileNotFoundError(f"Knowledge base not found: {self._path}")
 
         # Initialize storage
-        from zomma_kg.storage.parquet.backend import ParquetBackend
+        from vanna_kg.storage.parquet.backend import ParquetBackend
         self._storage = ParquetBackend(self._path, self._config)
         await self._storage.initialize()
 
@@ -176,7 +176,7 @@ class KnowledgeGraph:
         provider = self._config.llm_provider.lower()
 
         if provider == "openai":
-            from zomma_kg.providers.llm.openai import OpenAILLMProvider
+            from vanna_kg.providers.llm.openai import OpenAILLMProvider
             return OpenAILLMProvider(
                 api_key=self._config.openai_api_key,
                 model=self._config.llm_model,
@@ -193,7 +193,7 @@ class KnowledgeGraph:
         provider = self._config.embedding_provider.lower()
 
         if provider == "openai":
-            from zomma_kg.providers.embedding.openai import OpenAIEmbeddingProvider
+            from vanna_kg.providers.embedding.openai import OpenAIEmbeddingProvider
             return OpenAIEmbeddingProvider(
                 api_key=self._config.openai_api_key,
                 model=self._config.embedding_model,
@@ -261,13 +261,13 @@ class KnowledgeGraph:
 
 **Step 2: Verify syntax**
 
-Run: `python -c "from zomma_kg.api.knowledge_graph import KnowledgeGraph; print('OK')"`
+Run: `python -c "from vanna_kg.api.knowledge_graph import KnowledgeGraph; print('OK')"`
 Expected: "OK"
 
 **Step 3: Commit**
 
 ```bash
-git add zomma_kg/api/knowledge_graph.py
+git add vanna_kg/api/knowledge_graph.py
 git commit -m "feat(api): implement KnowledgeGraph core structure with lazy init"
 ```
 
@@ -276,7 +276,7 @@ git commit -m "feat(api): implement KnowledgeGraph core structure with lazy init
 ## Task 3: Implement Ingestion Methods
 
 **Files:**
-- Modify: `zomma_kg/api/knowledge_graph.py` (append to class)
+- Modify: `vanna_kg/api/knowledge_graph.py` (append to class)
 
 **Step 1: Add ingestion methods**
 
@@ -320,15 +320,15 @@ Add the following methods to the KnowledgeGraph class:
         import time
         from uuid import uuid4
 
-        from zomma_kg.ingestion.chunking import chunk_pdf
-        from zomma_kg.ingestion.extraction import extract_from_chunks
-        from zomma_kg.ingestion.resolution import (
+        from vanna_kg.ingestion.chunking import chunk_pdf
+        from vanna_kg.ingestion.extraction import extract_from_chunks
+        from vanna_kg.ingestion.resolution import (
             EntityRegistry,
             TopicResolver,
             deduplicate_entities,
         )
-        from zomma_kg.ingestion.assembly import Assembler
-        from zomma_kg.types import (
+        from vanna_kg.ingestion.assembly import Assembler
+        from vanna_kg.types import (
             AssemblyInput,
             Document,
             Chunk,
@@ -533,15 +533,15 @@ Add the following methods to the KnowledgeGraph class:
         import time
         from uuid import uuid4
 
-        from zomma_kg.ingestion.chunking import chunk_markdown
-        from zomma_kg.ingestion.extraction import extract_from_chunks
-        from zomma_kg.ingestion.resolution import (
+        from vanna_kg.ingestion.chunking import chunk_markdown
+        from vanna_kg.ingestion.extraction import extract_from_chunks
+        from vanna_kg.ingestion.resolution import (
             EntityRegistry,
             TopicResolver,
             deduplicate_entities,
         )
-        from zomma_kg.ingestion.assembly import Assembler
-        from zomma_kg.types import (
+        from vanna_kg.ingestion.assembly import Assembler
+        from vanna_kg.types import (
             AssemblyInput,
             Document,
             Chunk,
@@ -754,13 +754,13 @@ Add the following methods to the KnowledgeGraph class:
 
 **Step 2: Verify syntax**
 
-Run: `python -c "from zomma_kg.api.knowledge_graph import KnowledgeGraph; print('OK')"`
+Run: `python -c "from vanna_kg.api.knowledge_graph import KnowledgeGraph; print('OK')"`
 Expected: "OK"
 
 **Step 3: Commit**
 
 ```bash
-git add zomma_kg/api/knowledge_graph.py
+git add vanna_kg/api/knowledge_graph.py
 git commit -m "feat(api): implement ingestion methods with parallel resolution"
 ```
 
@@ -769,7 +769,7 @@ git commit -m "feat(api): implement ingestion methods with parallel resolution"
 ## Task 4: Implement Query Methods
 
 **Files:**
-- Modify: `zomma_kg/api/knowledge_graph.py` (append to class)
+- Modify: `vanna_kg/api/knowledge_graph.py` (append to class)
 
 **Step 1: Add query methods**
 
@@ -806,8 +806,8 @@ Add the following methods to the KnowledgeGraph class:
         assert self._llm is not None
         assert self._embeddings is not None
 
-        from zomma_kg.query import GraphRAGPipeline
-        from zomma_kg.types import QueryResult
+        from vanna_kg.query import GraphRAGPipeline
+        from vanna_kg.types import QueryResult
 
         # Cache pipeline for reuse
         if self._query_pipeline is None:
@@ -919,13 +919,13 @@ Add the following methods to the KnowledgeGraph class:
 
 **Step 2: Verify syntax**
 
-Run: `python -c "from zomma_kg.api.knowledge_graph import KnowledgeGraph; print('OK')"`
+Run: `python -c "from vanna_kg.api.knowledge_graph import KnowledgeGraph; print('OK')"`
 Expected: "OK"
 
 **Step 3: Commit**
 
 ```bash
-git add zomma_kg/api/knowledge_graph.py
+git add vanna_kg/api/knowledge_graph.py
 git commit -m "feat(api): implement query and search methods"
 ```
 
@@ -934,7 +934,7 @@ git commit -m "feat(api): implement query and search methods"
 ## Task 5: Implement Data Access Methods
 
 **Files:**
-- Modify: `zomma_kg/api/knowledge_graph.py` (append to class)
+- Modify: `vanna_kg/api/knowledge_graph.py` (append to class)
 
 **Step 1: Add data access methods**
 
@@ -1022,19 +1022,19 @@ Add the following methods to the KnowledgeGraph class:
         The shell presents the KG as a virtual filesystem navigable
         with familiar commands: ls, cd, cat, grep, find, etc.
         """
-        from zomma_kg.api.shell import KGShell
+        from vanna_kg.api.shell import KGShell
         return KGShell(self)
 ```
 
 **Step 2: Verify syntax**
 
-Run: `python -c "from zomma_kg.api.knowledge_graph import KnowledgeGraph; print('OK')"`
+Run: `python -c "from vanna_kg.api.knowledge_graph import KnowledgeGraph; print('OK')"`
 Expected: "OK"
 
 **Step 3: Commit**
 
 ```bash
-git add zomma_kg/api/knowledge_graph.py
+git add vanna_kg/api/knowledge_graph.py
 git commit -m "feat(api): implement data access and stats methods"
 ```
 
@@ -1043,7 +1043,7 @@ git commit -m "feat(api): implement data access and stats methods"
 ## Task 6: Implement CLI Commands
 
 **Files:**
-- Modify: `zomma_kg/cli/__init__.py`
+- Modify: `vanna_kg/cli/__init__.py`
 
 **Step 1: Write the CLI implementation**
 
@@ -1053,26 +1053,26 @@ Replace the entire file with:
 """
 Command-Line Interface
 
-CLI commands for ZommaKG operations.
+CLI commands for VannaKG operations.
 
 Commands:
-    zomma-kg ingest  - Ingest documents into a knowledge base
-    zomma-kg query   - Query a knowledge base
-    zomma-kg info    - Display knowledge base information
-    zomma-kg shell   - Interactive navigation shell (placeholder)
+    vanna-kg ingest  - Ingest documents into a knowledge base
+    vanna-kg query   - Query a knowledge base
+    vanna-kg info    - Display knowledge base information
+    vanna-kg shell   - Interactive navigation shell (placeholder)
 
 Usage:
     # Ingest a PDF
-    zomma-kg ingest report.pdf --kb ./my_kb
+    vanna-kg ingest report.pdf --kb ./my_kb
 
     # Ingest a directory
-    zomma-kg ingest ./documents --kb ./my_kb --pattern "**/*.pdf"
+    vanna-kg ingest ./documents --kb ./my_kb --pattern "**/*.pdf"
 
     # Query
-    zomma-kg query "What were the findings?" --kb ./my_kb
+    vanna-kg query "What were the findings?" --kb ./my_kb
 
     # Show stats
-    zomma-kg info --kb ./my_kb
+    vanna-kg info --kb ./my_kb
 
 See: docs/architecture/PYTHON_PACKAGE_DESIGN.md Section 8
 """
@@ -1093,7 +1093,7 @@ from rich.markdown import Markdown
 __all__ = ["main", "app"]
 
 app = typer.Typer(
-    name="zomma-kg",
+    name="vanna-kg",
     help="Embedded knowledge graph for document understanding",
     no_args_is_help=True,
 )
@@ -1126,7 +1126,7 @@ def ingest(
     """Ingest documents into a knowledge base."""
 
     async def _run() -> None:
-        from zomma_kg.api.knowledge_graph import KnowledgeGraph
+        from vanna_kg.api.knowledge_graph import KnowledgeGraph
 
         kg = KnowledgeGraph(kb)
 
@@ -1238,7 +1238,7 @@ def query(
     """Query the knowledge base."""
 
     async def _run() -> None:
-        from zomma_kg.api.knowledge_graph import KnowledgeGraph
+        from vanna_kg.api.knowledge_graph import KnowledgeGraph
 
         kg = KnowledgeGraph(kb, create=False)
 
@@ -1302,7 +1302,7 @@ def info(
     """Display knowledge base information."""
 
     async def _run() -> None:
-        from zomma_kg.api.knowledge_graph import KnowledgeGraph
+        from vanna_kg.api.knowledge_graph import KnowledgeGraph
 
         kg = KnowledgeGraph(kb, create=False)
 
@@ -1337,7 +1337,7 @@ def shell(
 ) -> None:
     """Interactive navigation shell (coming soon)."""
     console.print("[yellow]Interactive shell not yet implemented.[/]")
-    console.print("Use 'zomma-kg query' for now.")
+    console.print("Use 'vanna-kg query' for now.")
 
 
 def main() -> None:
@@ -1347,13 +1347,13 @@ def main() -> None:
 
 **Step 2: Verify CLI works**
 
-Run: `python -m zomma_kg.cli --help`
+Run: `python -m vanna_kg.cli --help`
 Expected: Help text showing ingest, query, info, shell commands
 
 **Step 3: Commit**
 
 ```bash
-git add zomma_kg/cli/__init__.py
+git add vanna_kg/cli/__init__.py
 git commit -m "feat(cli): implement typer CLI with ingest, query, info commands"
 ```
 
@@ -1364,8 +1364,8 @@ git commit -m "feat(cli): implement typer CLI with ingest, query, info commands"
 The KnowledgeGraph uses some storage methods that may not exist. Let's verify and add them if needed.
 
 **Files:**
-- Check: `zomma_kg/storage/duckdb/queries.py`
-- Check: `zomma_kg/storage/parquet/backend.py`
+- Check: `vanna_kg/storage/duckdb/queries.py`
+- Check: `vanna_kg/storage/parquet/backend.py`
 
 **Step 1: Check for missing methods**
 
@@ -1378,13 +1378,13 @@ If missing, add them to the appropriate files.
 
 **Step 2: Test the full flow**
 
-Run: `python -c "from zomma_kg import KnowledgeGraph; kg = KnowledgeGraph('./test_kb'); print(kg.path)"`
+Run: `python -c "from vanna_kg import KnowledgeGraph; kg = KnowledgeGraph('./test_kb'); print(kg.path)"`
 Expected: Prints the path
 
 **Step 3: Commit if changes made**
 
 ```bash
-git add zomma_kg/storage/
+git add vanna_kg/storage/
 git commit -m "fix(storage): add missing data access methods"
 ```
 
@@ -1393,14 +1393,14 @@ git commit -m "fix(storage): add missing data access methods"
 ## Task 8: Update Package Exports
 
 **Files:**
-- Modify: `zomma_kg/__init__.py`
+- Modify: `vanna_kg/__init__.py`
 
 **Step 1: Ensure KnowledgeGraph is exported**
 
 Add or verify this export exists:
 
 ```python
-from zomma_kg.api.knowledge_graph import KnowledgeGraph
+from vanna_kg.api.knowledge_graph import KnowledgeGraph
 
 __all__ = [
     "KnowledgeGraph",
@@ -1410,13 +1410,13 @@ __all__ = [
 
 **Step 2: Test import**
 
-Run: `python -c "from zomma_kg import KnowledgeGraph; print('OK')"`
+Run: `python -c "from vanna_kg import KnowledgeGraph; print('OK')"`
 Expected: "OK"
 
 **Step 3: Commit**
 
 ```bash
-git add zomma_kg/__init__.py
+git add vanna_kg/__init__.py
 git commit -m "feat: export KnowledgeGraph from package root"
 ```
 
@@ -1440,7 +1440,7 @@ Tim Cook, CEO of Apple, met with Satya Nadella to discuss the deal.
 # Test ingestion and query
 python -c "
 import asyncio
-from zomma_kg import KnowledgeGraph
+from vanna_kg import KnowledgeGraph
 
 async def test():
     kg = KnowledgeGraph('./test_integration_kb')
@@ -1461,8 +1461,8 @@ asyncio.run(test())
 **Step 2: Test CLI**
 
 ```bash
-zomma-kg --help
-zomma-kg info --kb ./test_integration_kb
+vanna-kg --help
+vanna-kg info --kb ./test_integration_kb
 ```
 
 **Step 3: Clean up and final commit**

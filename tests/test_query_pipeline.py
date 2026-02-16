@@ -9,13 +9,13 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from zomma_kg.config.settings import KGConfig
-from zomma_kg.query.context_builder import ContextBuilder
-from zomma_kg.query.decomposer import QueryDecomposer
-from zomma_kg.query.pipeline import GraphRAGPipeline
-from zomma_kg.query.researcher import Researcher
-from zomma_kg.query.synthesizer import Synthesizer
-from zomma_kg.query.types import (
+from vanna_kg.config.settings import KGConfig
+from vanna_kg.query.context_builder import ContextBuilder
+from vanna_kg.query.decomposer import QueryDecomposer
+from vanna_kg.query.pipeline import GraphRAGPipeline
+from vanna_kg.query.researcher import Researcher
+from vanna_kg.query.synthesizer import Synthesizer
+from vanna_kg.query.types import (
     PipelineResult,
     ResolvedEntity,
     RetrievedChunk,
@@ -23,7 +23,7 @@ from zomma_kg.query.types import (
     StructuredContext,
     SubAnswer,
 )
-from zomma_kg.types.results import (
+from vanna_kg.types.results import (
     EntityHint,
     QueryDecomposition,
     QuestionType,
@@ -444,7 +444,7 @@ class TestResearcher:
         """Ontology index should be initialized with group_id='ontology'."""
         mock_storage.kb_path = tmp_path
 
-        with patch("zomma_kg.query.researcher.LanceDBIndices") as mock_indices_cls:
+        with patch("vanna_kg.query.researcher.LanceDBIndices") as mock_indices_cls:
             mock_index = MagicMock()
             mock_index.initialize = AsyncMock()
             mock_indices_cls.return_value = mock_index
@@ -559,7 +559,7 @@ class TestResearcher:
         mock_storage.search_entities = AsyncMock(return_value=[(mock_entity, 0.9)])
 
         # Mock LLM to return resolution
-        from zomma_kg.query.types import EntityResolutionResponse, ResolvedNode
+        from vanna_kg.query.types import EntityResolutionResponse, ResolvedNode
         mock_llm.generate_structured = AsyncMock(
             return_value=EntityResolutionResponse(
                 resolved_entities=[ResolvedNode(name="Apple Inc.")]
@@ -764,7 +764,7 @@ class TestSynthesizer:
         sample_chunks: list[RetrievedChunk],
     ) -> None:
         """Test sub-answer synthesis with context."""
-        from zomma_kg.query.types import SubAnswerSynthesis
+        from vanna_kg.query.types import SubAnswerSynthesis
         mock_llm.generate_structured = AsyncMock(
             return_value=SubAnswerSynthesis(
                 answer="Apple acquired DarwinAI in 2024.",
@@ -841,7 +841,7 @@ class TestSynthesizer:
         self, mock_llm: MagicMock
     ) -> None:
         """Test final synthesis with multiple sub-answers."""
-        from zomma_kg.query.types import FinalSynthesis
+        from vanna_kg.query.types import FinalSynthesis
         mock_llm.generate_structured = AsyncMock(
             return_value=FinalSynthesis(
                 answer="Combined answer from multiple sources.",
@@ -983,7 +983,7 @@ class TestGraphRAGPipeline:
         sample_decomposition: QueryDecomposition,
     ) -> None:
         """Test that sources are included when requested."""
-        from zomma_kg.query.types import SubAnswerSynthesis
+        from vanna_kg.query.types import SubAnswerSynthesis
         mock_llm.generate_structured = AsyncMock(
             side_effect=[
                 sample_decomposition,

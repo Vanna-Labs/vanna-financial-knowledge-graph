@@ -30,7 +30,7 @@ The topic resolver matches extracted topic strings against a curated financial o
 
 ### 1. Dual Storage Model
 
-- **JSON file** (`zomma_kg/data/topics/financial_topics.json`): Source of truth, editable, version-controlled
+- **JSON file** (`vanna_kg/data/topics/financial_topics.json`): Source of truth, editable, version-controlled
 - **LanceDB**: Search index loaded from JSON, used for vector similarity search
 
 ### 2. Embedding Pattern
@@ -209,10 +209,10 @@ class TopicResolver:
 
 | File | Action | Description |
 |------|--------|-------------|
-| `zomma_kg/data/topics/financial_topics.json` | Create | Copy from ZommaLabsKG (~140 topics) |
-| `zomma_kg/ingestion/resolution/topic_resolver.py` | Create | Main resolver class |
-| `zomma_kg/types/topics.py` | Modify | Add `TopicResolutionResult`, `TopicMatchDecision`, `BatchTopicMatchResponse` |
-| `zomma_kg/ingestion/resolution/__init__.py` | Modify | Export `TopicResolver` |
+| `vanna_kg/data/topics/financial_topics.json` | Create | Copy from VannaLabsKG (~140 topics) |
+| `vanna_kg/ingestion/resolution/topic_resolver.py` | Create | Main resolver class |
+| `vanna_kg/types/topics.py` | Modify | Add `TopicResolutionResult`, `TopicMatchDecision`, `BatchTopicMatchResponse` |
+| `vanna_kg/ingestion/resolution/__init__.py` | Modify | Export `TopicResolver` |
 | `tests/test_topic_resolver.py` | Create | Unit tests |
 | `pyproject.toml` | Modify | Include `data/topics/*.json` in package |
 

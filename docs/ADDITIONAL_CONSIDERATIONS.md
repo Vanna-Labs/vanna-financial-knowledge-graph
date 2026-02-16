@@ -1,6 +1,6 @@
-# Additional Considerations for ZommaLabsKG Evolution
+# Additional Considerations for VannaLabsKG Evolution
 
-**Document Purpose:** Strategic analysis of tradeoffs, constraints, and future directions for the ZommaLabsKG knowledge graph system. This document focuses on decisions and their implications rather than implementation details.
+**Document Purpose:** Strategic analysis of tradeoffs, constraints, and future directions for the VannaLabsKG knowledge graph system. This document focuses on decisions and their implications rather than implementation details.
 
 **Last Updated:** January 2026
 
@@ -8,7 +8,7 @@
 
 ## 1. Executive Summary
 
-ZommaLabsKG is a knowledge graph pipeline that transforms financial documents into a queryable graph structure backed by Neo4j. The system employs a three-phase architecture: extraction (LLM-powered), resolution (deduplication and entity matching), and assembly (graph construction).
+VannaLabsKG is a knowledge graph pipeline that transforms financial documents into a queryable graph structure backed by Neo4j. The system employs a three-phase architecture: extraction (LLM-powered), resolution (deduplication and entity matching), and assembly (graph construction).
 
 **Key Strategic Decisions:**
 
@@ -177,7 +177,7 @@ Embedding costs are negligible compared to LLM extraction costs.
 
 ### Horizontal Scaling Challenges
 
-ZommaLabsKG presents interesting scaling challenges because the workload is heterogeneous:
+VannaLabsKG presents interesting scaling challenges because the workload is heterogeneous:
 
 **Compute-Bound Operations (Scale with workers):**
 - LLM extraction calls (embarrassingly parallel)
@@ -459,7 +459,7 @@ All content in one vector store, filtered by metadata.
 
 ### pip install Experience
 
-**Goal:** `pip install zomma-kg` should work with minimal friction.
+**Goal:** `pip install vanna-kg` should work with minimal friction.
 
 **Challenges:**
 
@@ -470,7 +470,7 @@ All content in one vector store, filtered by metadata.
 
 **Installation Profile:**
 ```
-zomma-kg
+vanna-kg
 ├── langchain (+ langchain-openai, langchain-google-genai)
 ├── neo4j (Python driver)
 ├── qdrant-client
@@ -778,7 +778,7 @@ local-embed = ["sentence-transformers"]  # Future
 
 ## Summary
 
-ZommaLabsKG represents a set of architectural decisions optimized for financial document understanding with knowledge graph backing. The system prioritizes:
+VannaLabsKG represents a set of architectural decisions optimized for financial document understanding with knowledge graph backing. The system prioritizes:
 
 1. **Extraction quality** over processing speed
 2. **Provenance and auditability** over storage efficiency

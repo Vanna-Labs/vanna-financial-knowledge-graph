@@ -23,7 +23,7 @@ Extraction Output → Entity Registry → Assembler → Storage (Parquet + Lance
 
 ## Module 1: Entity Registry
 
-**File**: `zomma_kg/ingestion/resolution/entity_registry.py`
+**File**: `vanna_kg/ingestion/resolution/entity_registry.py`
 
 ### Purpose
 
@@ -191,7 +191,7 @@ class EntityRegistry:
 
 ## Module 2: Assembler
 
-**File**: `zomma_kg/ingestion/assembly/assembler.py`
+**File**: `vanna_kg/ingestion/assembly/assembler.py`
 
 ### Purpose
 
@@ -416,8 +416,8 @@ class EntityMatchDecision(BaseModel):
 
 ## File Checklist
 
-- [ ] `zomma_kg/ingestion/resolution/entity_registry.py`
-- [ ] `zomma_kg/ingestion/assembly/assembler.py`
-- [ ] Update `zomma_kg/types/results.py` with new types
+- [ ] `vanna_kg/ingestion/resolution/entity_registry.py`
+- [ ] `vanna_kg/ingestion/assembly/assembler.py`
+- [ ] Update `vanna_kg/types/results.py` with new types
 - [ ] Tests: `tests/test_entity_registry.py`
 - [ ] Tests: `tests/test_assembler.py`

@@ -26,7 +26,7 @@ assembly logic. This increases drift risk and makes fixes error-prone.
 
 ## Target files
 
-- `zomma_kg/api/knowledge_graph.py`
+- `vanna_kg/api/knowledge_graph.py`
 - `tests/test_knowledge_graph.py`
 - optional new focused test file under `tests/` for ingestion parity
 

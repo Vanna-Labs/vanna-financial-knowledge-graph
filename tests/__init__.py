@@ -1,1 +1,1 @@
-"""ZommaKG test suite."""
+"""VannaKG test suite."""

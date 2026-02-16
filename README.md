@@ -1,17 +1,17 @@
-# ZommaKG
+# VannaKG
 
 Embedded knowledge graph library for document understanding.
 
 ## Installation
 
 ```bash
-pip install zomma-kg
+pip install vanna-kg
 ```
 
 ## Quick Start
 
 ```python
-from zomma_kg import KnowledgeGraph
+from vanna_kg import KnowledgeGraph
 
 kg = KnowledgeGraph("./my_kb")
 

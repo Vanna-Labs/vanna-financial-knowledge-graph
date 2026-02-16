@@ -3948,7 +3948,7 @@ wheels = [
 ]
 
 [[package]]
-name = "zomma-kg"
+name = "vanna-kg"
 version = "0.3.0"
 source = { editable = "." }
 dependencies = [
@@ -4052,9 +4052,9 @@ requires-dist = [
     { name = "typer", extras = ["all"], specifier = ">=0.9.0" },
     { name = "typing-extensions", specifier = ">=4.8" },
     { name = "voyageai", marker = "extra == 'voyage'", specifier = ">=0.2" },
-    { name = "zomma-kg", extras = ["all", "local-embed"], marker = "extra == 'full'" },
-    { name = "zomma-kg", extras = ["cloud", "mcp"], marker = "extra == 'all'" },
-    { name = "zomma-kg", extras = ["openai", "anthropic", "google", "voyage"], marker = "extra == 'cloud'" },
+    { name = "vanna-kg", extras = ["all", "local-embed"], marker = "extra == 'full'" },
+    { name = "vanna-kg", extras = ["cloud", "mcp"], marker = "extra == 'all'" },
+    { name = "vanna-kg", extras = ["openai", "anthropic", "google", "voyage"], marker = "extra == 'cloud'" },
 ]
 provides-extras = ["openai", "anthropic", "google", "voyage", "local-embed", "mcp", "cloud", "all", "full", "dev"]
 

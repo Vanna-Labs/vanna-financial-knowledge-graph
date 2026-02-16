@@ -1,9 +1,9 @@
 # Repository Guidelines
 
 ## Project Structure & Module Organization
-- Core package code lives in `zomma_kg/`.
+- Core package code lives in `vanna_kg/`.
 - Major domains: `ingestion/` (chunking, extraction, resolution, assembly), `query/` (GraphRAG pipeline), `storage/` (Parquet, DuckDB, LanceDB), `api/` (public facade), and `cli/` (Typer commands).
-- Shared schemas and config are in `zomma_kg/types/` and `zomma_kg/config/`.
+- Shared schemas and config are in `vanna_kg/types/` and `vanna_kg/config/`.
 - Automated tests live in `tests/` (note: `pytest` is configured to run this folder by default).
 - Utility/dev artifacts: `scripts/` for local workflows, `docs/` for design plans, and `test_data/` for sample inputs.
 
@@ -11,10 +11,10 @@
 - Install dev environment: `uv pip install -e ".[dev,all]"`.
 - Run all tests: `uv run pytest -q`.
 - Run one module/test: `uv run pytest tests/test_entity_dedup.py -q`.
-- Lint: `uv run ruff check zomma_kg tests`.
-- Format: `uv run ruff format zomma_kg tests`.
-- Type-check (strict): `uv run mypy zomma_kg`.
-- CLI smoke check: `uv run zomma-kg --help`.
+- Lint: `uv run ruff check vanna_kg tests`.
+- Format: `uv run ruff format vanna_kg tests`.
+- Type-check (strict): `uv run mypy vanna_kg`.
+- CLI smoke check: `uv run vanna-kg --help`.
 - End-to-end ingestion script example: `python scripts/build_kg.py test_data/BeigeBook_20251015.md --chunks 10`.
 
 ## Coding Style & Naming Conventions

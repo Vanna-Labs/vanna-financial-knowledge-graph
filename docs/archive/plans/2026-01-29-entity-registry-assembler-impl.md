@@ -13,12 +13,12 @@
 ## Task 1: Add New Types to results.py
 
 **Files:**
-- Modify: `zomma_kg/types/results.py`
+- Modify: `vanna_kg/types/results.py`
 - Test: `tests/test_types.py`
 
 **Step 1: Add EntityRegistryMatch type**
 
-Add after line 354 in `zomma_kg/types/results.py`:
+Add after line 354 in `vanna_kg/types/results.py`:
 
 ```python
 # -----------------------------------------------------------------------------
@@ -74,10 +74,10 @@ class EntityResolutionResult(BaseModel):
 
 **Step 2: Update __all__ in types/__init__.py**
 
-Add to exports in `zomma_kg/types/__init__.py`:
+Add to exports in `vanna_kg/types/__init__.py`:
 
 ```python
-from zomma_kg.types.results import (
+from vanna_kg.types.results import (
     # ... existing exports ...
     EntityRegistryMatch,
     EntityResolutionResult,
@@ -131,14 +131,14 @@ def test_entity_resolution_result():
 
 **Step 4: Run tests**
 
-Run: `cd /home/rithv/Programming/Startups/ZommaLabsKGRust && python -m pytest tests/test_types.py -v -k "entity_registry"`
+Run: `cd /home/rithv/Programming/Startups/VannaLabsKGRust && python -m pytest tests/test_types.py -v -k "entity_registry"`
 
 Expected: 3 tests PASS
 
 **Step 5: Commit**
 
 ```bash
-git add zomma_kg/types/results.py zomma_kg/types/__init__.py tests/test_types.py
+git add vanna_kg/types/results.py vanna_kg/types/__init__.py tests/test_types.py
 git commit -m "feat(types): add EntityRegistryMatch and EntityResolutionResult types"
 ```
 
@@ -147,12 +147,12 @@ git commit -m "feat(types): add EntityRegistryMatch and EntityResolutionResult t
 ## Task 2: Create EntityRegistry - Core Structure
 
 **Files:**
-- Create: `zomma_kg/ingestion/resolution/entity_registry.py`
+- Create: `vanna_kg/ingestion/resolution/entity_registry.py`
 - Test: `tests/test_entity_registry.py`
 
 **Step 1: Create basic EntityRegistry class**
 
-Create `zomma_kg/ingestion/resolution/entity_registry.py`:
+Create `vanna_kg/ingestion/resolution/entity_registry.py`:
 
 ```python
 """
@@ -166,17 +166,17 @@ This is the cross-document deduplication layer. In-document dedup
 happens earlier in entity_dedup.py.
 """
 
-from zomma_kg.config import KGConfig
-from zomma_kg.providers.base import EmbeddingProvider, LLMProvider
-from zomma_kg.storage.base import StorageBackend
-from zomma_kg.types import Entity
-from zomma_kg.types.results import (
+from vanna_kg.config import KGConfig
+from vanna_kg.providers.base import EmbeddingProvider, LLMProvider
+from vanna_kg.storage.base import StorageBackend
+from vanna_kg.types import Entity
+from vanna_kg.types.results import (
     CanonicalEntity,
     EntityRegistryMatch,
     EntityResolutionResult,
 )
 
-# Constants matching original ZommaLabsKG
+# Constants matching original VannaLabsKG
 CANDIDATE_LIMIT = 25  # Top candidates from vector search
 SIMILARITY_DISPLAY_THRESHOLD = 0.50  # Show in LLM prompt if above this
 HIGH_SIMILARITY_THRESHOLD = 0.90  # Flag as "likely same" in prompt
@@ -371,7 +371,7 @@ Output only the merged summary, nothing else."""
 
 **Step 2: Update resolution __init__.py**
 
-Modify `zomma_kg/ingestion/resolution/__init__.py`:
+Modify `vanna_kg/ingestion/resolution/__init__.py`:
 
 ```python
 """
@@ -382,8 +382,8 @@ Modules:
     entity_registry: Cross-document entity matching against KB
 """
 
-from zomma_kg.ingestion.resolution.entity_dedup import EntityDeduplicator
-from zomma_kg.ingestion.resolution.entity_registry import EntityRegistry
+from vanna_kg.ingestion.resolution.entity_dedup import EntityDeduplicator
+from vanna_kg.ingestion.resolution.entity_registry import EntityRegistry
 
 __all__ = ["EntityDeduplicator", "EntityRegistry"]
 ```
@@ -397,13 +397,13 @@ Create `tests/test_entity_registry.py`:
 
 import pytest
 
-from zomma_kg.ingestion.resolution.entity_registry import (
+from vanna_kg.ingestion.resolution.entity_registry import (
     CANDIDATE_LIMIT,
     HIGH_SIMILARITY_THRESHOLD,
     SIMILARITY_DISPLAY_THRESHOLD,
     EntityRegistry,
 )
-from zomma_kg.types.results import CanonicalEntity, EntityResolutionResult
+from vanna_kg.types.results import CanonicalEntity, EntityResolutionResult
 
 
 class TestEntityRegistryConstants:
@@ -469,14 +469,14 @@ class TestEntityResolutionResult:
 
 **Step 4: Run tests**
 
-Run: `cd /home/rithv/Programming/Startups/ZommaLabsKGRust && python -m pytest tests/test_entity_registry.py -v`
+Run: `cd /home/rithv/Programming/Startups/VannaLabsKGRust && python -m pytest tests/test_entity_registry.py -v`
 
 Expected: All tests PASS
 
 **Step 5: Commit**
 
 ```bash
-git add zomma_kg/ingestion/resolution/entity_registry.py zomma_kg/ingestion/resolution/__init__.py tests/test_entity_registry.py
+git add vanna_kg/ingestion/resolution/entity_registry.py vanna_kg/ingestion/resolution/__init__.py tests/test_entity_registry.py
 git commit -m "feat(resolution): add EntityRegistry for cross-document entity matching"
 ```
 
@@ -485,12 +485,12 @@ git commit -m "feat(resolution): add EntityRegistry for cross-document entity ma
 ## Task 3: Create Assembler - Core Structure
 
 **Files:**
-- Create: `zomma_kg/ingestion/assembly/assembler.py`
+- Create: `vanna_kg/ingestion/assembly/assembler.py`
 - Test: `tests/test_assembler.py`
 
 **Step 1: Create AssemblyInput and AssemblyResult types**
 
-Add to `zomma_kg/types/results.py` after EntityResolutionResult:
+Add to `vanna_kg/types/results.py` after EntityResolutionResult:
 
 ```python
 class AssemblyInput(BaseModel):
@@ -531,14 +531,14 @@ Add imports at top of results.py:
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from zomma_kg.types.chunks import Chunk, Document
-    from zomma_kg.types.facts import Fact
-    from zomma_kg.types.topics import Topic
+    from vanna_kg.types.chunks import Chunk, Document
+    from vanna_kg.types.facts import Fact
+    from vanna_kg.types.topics import Topic
 ```
 
 **Step 2: Create Assembler class**
 
-Create `zomma_kg/ingestion/assembly/assembler.py`:
+Create `vanna_kg/ingestion/assembly/assembler.py`:
 
 ```python
 """
@@ -557,10 +557,10 @@ Write order (due to foreign key relationships):
 
 import asyncio
 
-from zomma_kg.providers.base import EmbeddingProvider
-from zomma_kg.storage.base import StorageBackend
-from zomma_kg.types import Entity, EntityType
-from zomma_kg.types.results import AssemblyInput, AssemblyResult, CanonicalEntity
+from vanna_kg.providers.base import EmbeddingProvider
+from vanna_kg.storage.base import StorageBackend
+from vanna_kg.types import Entity, EntityType
+from vanna_kg.types.results import AssemblyInput, AssemblyResult, CanonicalEntity
 
 
 class Assembler:
@@ -727,7 +727,7 @@ class Assembler:
 
 **Step 3: Update assembly __init__.py**
 
-Modify `zomma_kg/ingestion/assembly/__init__.py`:
+Modify `vanna_kg/ingestion/assembly/__init__.py`:
 
 ```python
 """
@@ -761,7 +761,7 @@ Idempotency:
 See: docs/pipeline/ASSEMBLY_SYSTEM.md
 """
 
-from zomma_kg.ingestion.assembly.assembler import Assembler
+from vanna_kg.ingestion.assembly.assembler import Assembler
 
 __all__ = ["Assembler"]
 ```
@@ -775,9 +775,9 @@ Create `tests/test_assembler.py`:
 
 import pytest
 
-from zomma_kg.ingestion.assembly.assembler import Assembler
-from zomma_kg.types import EntityType
-from zomma_kg.types.results import AssemblyResult, CanonicalEntity
+from vanna_kg.ingestion.assembly.assembler import Assembler
+from vanna_kg.types import EntityType
+from vanna_kg.types.results import AssemblyResult, CanonicalEntity
 
 
 class TestAssemblerEntityTypeMapping:
@@ -853,14 +853,14 @@ class TestAssemblyResult:
 
 **Step 5: Run tests**
 
-Run: `cd /home/rithv/Programming/Startups/ZommaLabsKGRust && python -m pytest tests/test_assembler.py -v`
+Run: `cd /home/rithv/Programming/Startups/VannaLabsKGRust && python -m pytest tests/test_assembler.py -v`
 
 Expected: All tests PASS
 
 **Step 6: Commit**
 
 ```bash
-git add zomma_kg/types/results.py zomma_kg/ingestion/assembly/assembler.py zomma_kg/ingestion/assembly/__init__.py tests/test_assembler.py
+git add vanna_kg/types/results.py vanna_kg/ingestion/assembly/assembler.py vanna_kg/ingestion/assembly/__init__.py tests/test_assembler.py
 git commit -m "feat(assembly): add Assembler for batch storage writing"
 ```
 
@@ -878,8 +878,8 @@ Add to `tests/test_entity_registry.py`:
 ```python
 from unittest.mock import AsyncMock, MagicMock
 
-from zomma_kg.types import Entity, EntityType
-from zomma_kg.types.results import EntityRegistryMatch
+from vanna_kg.types import Entity, EntityType
+from vanna_kg.types.results import EntityRegistryMatch
 
 
 class TestEntityRegistryResolve:
@@ -1023,7 +1023,7 @@ class TestEntityRegistryResolve:
 
 **Step 2: Run tests**
 
-Run: `cd /home/rithv/Programming/Startups/ZommaLabsKGRust && python -m pytest tests/test_entity_registry.py -v`
+Run: `cd /home/rithv/Programming/Startups/VannaLabsKGRust && python -m pytest tests/test_entity_registry.py -v`
 
 Expected: All tests PASS
 
@@ -1049,9 +1049,9 @@ Add to `tests/test_assembler.py`:
 from unittest.mock import AsyncMock
 from uuid import uuid4
 
-from zomma_kg.types.chunks import Chunk, Document
-from zomma_kg.types.facts import Fact
-from zomma_kg.types.results import AssemblyInput
+from vanna_kg.types.chunks import Chunk, Document
+from vanna_kg.types.facts import Fact
+from vanna_kg.types.results import AssemblyInput
 
 
 class TestAssemblerIntegration:
@@ -1218,7 +1218,7 @@ class TestAssemblerIntegration:
 
 **Step 2: Run tests**
 
-Run: `cd /home/rithv/Programming/Startups/ZommaLabsKGRust && python -m pytest tests/test_assembler.py -v`
+Run: `cd /home/rithv/Programming/Startups/VannaLabsKGRust && python -m pytest tests/test_assembler.py -v`
 
 Expected: All tests PASS
 
@@ -1234,14 +1234,14 @@ git commit -m "test(assembler): add integration tests with mock storage"
 ## Task 6: Export Types from Package
 
 **Files:**
-- Modify: `zomma_kg/types/__init__.py`
+- Modify: `vanna_kg/types/__init__.py`
 
 **Step 1: Add new exports**
 
-Update `zomma_kg/types/__init__.py` to export new types:
+Update `vanna_kg/types/__init__.py` to export new types:
 
 ```python
-from zomma_kg.types.results import (
+from vanna_kg.types.results import (
     AssemblyInput,
     AssemblyResult,
     EntityRegistryMatch,
@@ -1252,7 +1252,7 @@ from zomma_kg.types.results import (
 
 **Step 2: Update ingestion __init__.py**
 
-Update `zomma_kg/ingestion/__init__.py`:
+Update `vanna_kg/ingestion/__init__.py`:
 
 ```python
 """
@@ -1267,22 +1267,22 @@ Modules:
     assembly: Write to storage
 """
 
-from zomma_kg.ingestion.assembly import Assembler
-from zomma_kg.ingestion.resolution import EntityDeduplicator, EntityRegistry
+from vanna_kg.ingestion.assembly import Assembler
+from vanna_kg.ingestion.resolution import EntityDeduplicator, EntityRegistry
 
 __all__ = ["Assembler", "EntityDeduplicator", "EntityRegistry"]
 ```
 
 **Step 3: Run full test suite**
 
-Run: `cd /home/rithv/Programming/Startups/ZommaLabsKGRust && python -m pytest tests/ -v --ignore=tests/test_dedup_manual.py --ignore=tests/test_extraction_proper_nouns.py`
+Run: `cd /home/rithv/Programming/Startups/VannaLabsKGRust && python -m pytest tests/ -v --ignore=tests/test_dedup_manual.py --ignore=tests/test_extraction_proper_nouns.py`
 
 Expected: All tests PASS
 
 **Step 4: Commit**
 
 ```bash
-git add zomma_kg/types/__init__.py zomma_kg/ingestion/__init__.py
+git add vanna_kg/types/__init__.py vanna_kg/ingestion/__init__.py
 git commit -m "feat: export EntityRegistry and Assembler from package"
 ```
 

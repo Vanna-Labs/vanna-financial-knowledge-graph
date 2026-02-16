@@ -13,7 +13,7 @@
 ## Task 1: Add `definition` Field to EnumeratedEntity
 
 **Files:**
-- Modify: `zomma_kg/types/entities.py:71-87`
+- Modify: `vanna_kg/types/entities.py:71-87`
 - Test: `tests/test_types.py`
 
 **Step 1: Write the failing test**
@@ -23,7 +23,7 @@ Add to `tests/test_types.py`:
 ```python
 def test_enumerated_entity_has_definition():
     """EnumeratedEntity should have both definition and summary fields."""
-    from zomma_kg.types.entities import EnumeratedEntity
+    from vanna_kg.types.entities import EnumeratedEntity
 
     entity = EnumeratedEntity(
         name="Federal Reserve",
@@ -42,7 +42,7 @@ Expected: FAIL with "unexpected keyword argument 'definition'"
 
 **Step 3: Write minimal implementation**
 
-Edit `zomma_kg/types/entities.py`, update `EnumeratedEntity` class:
+Edit `vanna_kg/types/entities.py`, update `EnumeratedEntity` class:
 
 ```python
 class EnumeratedEntity(BaseModel):
@@ -75,7 +75,7 @@ Expected: PASS
 **Step 5: Commit**
 
 ```bash
-git add zomma_kg/types/entities.py tests/test_types.py
+git add vanna_kg/types/entities.py tests/test_types.py
 git commit -m "$(cat <<'EOF'
 feat(types): add definition field to EnumeratedEntity
 
@@ -93,7 +93,7 @@ EOF
 ## Task 2: Update Extraction Prompt to Output Definition + Summary
 
 **Files:**
-- Modify: `zomma_kg/ingestion/extraction/extractor.py:31-84`
+- Modify: `vanna_kg/ingestion/extraction/extractor.py:31-84`
 
 **Step 1: Update the extraction system prompt**
 
@@ -124,7 +124,7 @@ Expected: PASS (prompt change doesn't break existing tests)
 **Step 3: Commit**
 
 ```bash
-git add zomma_kg/ingestion/extraction/extractor.py
+git add vanna_kg/ingestion/extraction/extractor.py
 git commit -m "$(cat <<'EOF'
 feat(extraction): update prompt to extract definition + summary
 
@@ -142,7 +142,7 @@ EOF
 ## Task 3: Update Deduplication to Use Definition for Embeddings
 
 **Files:**
-- Modify: `zomma_kg/ingestion/resolution/entity_dedup.py:43-54`
+- Modify: `vanna_kg/ingestion/resolution/entity_dedup.py:43-54`
 - Test: `tests/test_entity_dedup.py`
 
 **Step 1: Write the failing test**
@@ -152,8 +152,8 @@ Add to `tests/test_entity_dedup.py`:
 ```python
 def test_embedding_text_uses_definition():
     """Embedding text should use definition, not summary."""
-    from zomma_kg.ingestion.resolution.entity_dedup import _embedding_text
-    from zomma_kg.types.entities import EnumeratedEntity
+    from vanna_kg.ingestion.resolution.entity_dedup import _embedding_text
+    from vanna_kg.types.entities import EnumeratedEntity
 
     entity = EnumeratedEntity(
         name="Federal Reserve",
@@ -169,8 +169,8 @@ def test_embedding_text_uses_definition():
 
 def test_embedding_text_falls_back_to_summary_if_no_definition():
     """If no definition, fall back to summary for backwards compatibility."""
-    from zomma_kg.ingestion.resolution.entity_dedup import _embedding_text
-    from zomma_kg.types.entities import EnumeratedEntity
+    from vanna_kg.ingestion.resolution.entity_dedup import _embedding_text
+    from vanna_kg.types.entities import EnumeratedEntity
 
     entity = EnumeratedEntity(
         name="Apple Inc.",
@@ -189,7 +189,7 @@ Expected: FAIL (currently uses summary)
 
 **Step 3: Write minimal implementation**
 
-Update `_embedding_text` in `zomma_kg/ingestion/resolution/entity_dedup.py`:
+Update `_embedding_text` in `vanna_kg/ingestion/resolution/entity_dedup.py`:
 
 ```python
 def _embedding_text(entity: EnumeratedEntity) -> str:
@@ -224,7 +224,7 @@ Expected: PASS
 **Step 5: Commit**
 
 ```bash
-git add zomma_kg/ingestion/resolution/entity_dedup.py tests/test_entity_dedup.py
+git add vanna_kg/ingestion/resolution/entity_dedup.py tests/test_entity_dedup.py
 git commit -m "$(cat <<'EOF'
 feat(dedup): use definition instead of summary for embeddings
 
@@ -256,7 +256,7 @@ class TestEmbeddingTextGeneration:
 
     def test_embedding_text_with_definition(self):
         """Embedding text prefers definition over summary."""
-        from zomma_kg.ingestion.resolution.entity_dedup import _embedding_text
+        from vanna_kg.ingestion.resolution.entity_dedup import _embedding_text
 
         entity = EnumeratedEntity(
             name="Apple Inc.",
@@ -269,7 +269,7 @@ class TestEmbeddingTextGeneration:
 
     def test_embedding_text_falls_back_to_summary(self):
         """Embedding text falls back to summary if no definition."""
-        from zomma_kg.ingestion.resolution.entity_dedup import _embedding_text
+        from vanna_kg.ingestion.resolution.entity_dedup import _embedding_text
 
         entity = EnumeratedEntity(
             name="Apple Inc.",
@@ -282,7 +282,7 @@ class TestEmbeddingTextGeneration:
 
     def test_embedding_text_without_definition_or_summary(self):
         """Embedding text falls back to name only."""
-        from zomma_kg.ingestion.resolution.entity_dedup import _embedding_text
+        from vanna_kg.ingestion.resolution.entity_dedup import _embedding_text
 
         entity = EnumeratedEntity(
             name="AAPL",
@@ -295,7 +295,7 @@ class TestEmbeddingTextGeneration:
 
     def test_embedding_text_whitespace_definition(self):
         """Whitespace-only definition treated as empty, falls back to summary."""
-        from zomma_kg.ingestion.resolution.entity_dedup import _embedding_text
+        from vanna_kg.ingestion.resolution.entity_dedup import _embedding_text
 
         entity = EnumeratedEntity(
             name="Apple",
@@ -354,7 +354,7 @@ Run:
 source .venv/bin/activate && python -c "
 import asyncio
 from collections import Counter
-from zomma_kg import KnowledgeGraph
+from vanna_kg import KnowledgeGraph
 
 async def main():
     kg = KnowledgeGraph('./test_kb')

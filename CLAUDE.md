@@ -4,10 +4,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-ZommaKG is a pip-installable Python library for building embedded knowledge graphs from documents with zero infrastructure requirements. It transforms documents into queryable knowledge structures using DuckDB, LanceDB, and Parquet files.
+VannaKG is a pip-installable Python library for building embedded knowledge graphs from documents with zero infrastructure requirements. It transforms documents into queryable knowledge structures using DuckDB, LanceDB, and Parquet files.
 
 **Key characteristics:**
-- Zero infrastructure: `pip install zomma-kg` and start immediately
+- Zero infrastructure: `pip install vanna-kg` and start immediately
 - Knowledge bases are portable directories (can be zipped and shared)
 - Full offline support with no database server required
 - Multi-tenant capable with group_id isolation
@@ -29,16 +29,16 @@ pytest tests/test_entity_dedup.py
 pytest tests/test_entity_dedup.py::test_specific_function -v
 
 # Format code
-ruff format zomma_kg tests
+ruff format vanna_kg tests
 
 # Lint code
-ruff check zomma_kg tests
+ruff check vanna_kg tests
 
 # Type check (strict mode)
-mypy zomma_kg
+mypy vanna_kg
 
 # Run CLI
-python -m zomma_kg
+python -m vanna_kg
 ```
 
 ## Architecture
@@ -111,9 +111,9 @@ All queries filtered by `group_id`. Safe character validation for group IDs.
 
 ## Configuration
 
-Environment variables (prefix `ZOMMA_`):
-- `ZOMMA_LLM_PROVIDER` / `ZOMMA_LLM_MODEL`
-- `ZOMMA_EMBEDDING_PROVIDER`
+Environment variables (prefix `VANNA_`):
+- `VANNA_LLM_PROVIDER` / `VANNA_LLM_MODEL`
+- `VANNA_EMBEDDING_PROVIDER`
 - `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `GOOGLE_API_KEY`
 
 ## Code Style

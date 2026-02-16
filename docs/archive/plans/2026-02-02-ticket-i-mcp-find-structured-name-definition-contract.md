@@ -105,12 +105,12 @@ candidates. If `id` is provided, include it in the output line for traceability.
 
 ## Target files
 
-- `zomma_kg/mcp/server.py`
+- `vanna_kg/mcp/server.py`
 - `tests/test_mcp_server.py`
-- `zomma_kg/skills/kg-query/SKILL.md`
-- `zomma_kg/skills/kg-query/references/examples.md`
-- `zomma_kg/skills/kg-query/references/troubleshooting.md`
-- `zomma_kg/mcp/__init__.py`
+- `vanna_kg/skills/kg-query/SKILL.md`
+- `vanna_kg/skills/kg-query/references/examples.md`
+- `vanna_kg/skills/kg-query/references/troubleshooting.md`
+- `vanna_kg/mcp/__init__.py`
 
 ## Required implementation changes
 

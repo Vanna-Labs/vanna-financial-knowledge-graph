@@ -4,8 +4,8 @@ import pyarrow as pa
 import pyarrow.parquet as pq
 import pytest
 
-from zomma_kg.storage.parquet.backend import ParquetBackend
-from zomma_kg.types import Chunk
+from vanna_kg.storage.parquet.backend import ParquetBackend
+from vanna_kg.types import Chunk
 
 
 def _chunk(uuid: str, position: int) -> Chunk:
@@ -87,7 +87,7 @@ async def test_chunk_append_guardrail_never_reads_existing_table(
     def _fail_read_table(*args, **kwargs):  # type: ignore[no-untyped-def]
         raise AssertionError("append path should not read/concat existing parquet data")
 
-    monkeypatch.setattr("zomma_kg.storage.parquet.backend.pq.read_table", _fail_read_table)
+    monkeypatch.setattr("vanna_kg.storage.parquet.backend.pq.read_table", _fail_read_table)
     await backend.write_chunks([_chunk("chunk-2", 1)])
 
     assert await backend.count_chunks() == 2

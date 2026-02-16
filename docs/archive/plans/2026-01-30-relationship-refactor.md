@@ -13,7 +13,7 @@
 ## Task 1: Update Relationship Schema
 
 **Files:**
-- Modify: `zomma_kg/storage/parquet/backend.py:196-209`
+- Modify: `vanna_kg/storage/parquet/backend.py:196-209`
 
 **Step 1: Add chunk_uuid field to relationship schema**
 
@@ -41,7 +41,7 @@ def _relationship_schema() -> pa.Schema:
 **Step 2: Commit**
 
 ```bash
-git add zomma_kg/storage/parquet/backend.py
+git add vanna_kg/storage/parquet/backend.py
 git commit -m "feat(storage): add chunk_uuid field to relationship schema"
 ```
 
@@ -50,7 +50,7 @@ git commit -m "feat(storage): add chunk_uuid field to relationship schema"
 ## Task 2: Remove topic_chunk_mappings from AssemblyInput
 
 **Files:**
-- Modify: `zomma_kg/types/results.py:417-436`
+- Modify: `vanna_kg/types/results.py:417-436`
 
 **Step 1: Remove the topic_chunk_mappings field**
 
@@ -77,7 +77,7 @@ class AssemblyInput(BaseModel):
 **Step 2: Commit**
 
 ```bash
-git add zomma_kg/types/results.py
+git add vanna_kg/types/results.py
 git commit -m "refactor(types): remove topic_chunk_mappings from AssemblyInput"
 ```
 
@@ -86,7 +86,7 @@ git commit -m "refactor(types): remove topic_chunk_mappings from AssemblyInput"
 ## Task 3: Rewrite _build_relationships in Assembler
 
 **Files:**
-- Modify: `zomma_kg/ingestion/assembly/assembler.py:189-254`
+- Modify: `vanna_kg/ingestion/assembly/assembler.py:189-254`
 
 **Step 1: Write the new _build_relationships method**
 
@@ -168,7 +168,7 @@ Write order (due to foreign key relationships):
 **Step 3: Commit**
 
 ```bash
-git add zomma_kg/ingestion/assembly/assembler.py
+git add vanna_kg/ingestion/assembly/assembler.py
 git commit -m "refactor(assembler): simplify to direct entity-entity edges"
 ```
 
@@ -276,7 +276,7 @@ git commit -m "refactor(build_kg): remove topic_chunk_mappings tracking"
 ## Task 5: Update get_entity_chunks Query
 
 **Files:**
-- Modify: `zomma_kg/storage/duckdb/queries.py:316-360`
+- Modify: `vanna_kg/storage/duckdb/queries.py:316-360`
 
 **Step 1: Rewrite the query for direct edges**
 
@@ -330,7 +330,7 @@ async def get_entity_chunks(
 **Step 2: Commit**
 
 ```bash
-git add zomma_kg/storage/duckdb/queries.py
+git add vanna_kg/storage/duckdb/queries.py
 git commit -m "refactor(queries): update get_entity_chunks for direct edges"
 ```
 
@@ -339,7 +339,7 @@ git commit -m "refactor(queries): update get_entity_chunks for direct edges"
 ## Task 6: Update get_entity_neighbors Query
 
 **Files:**
-- Modify: `zomma_kg/storage/duckdb/queries.py:362-413`
+- Modify: `vanna_kg/storage/duckdb/queries.py:362-413`
 
 **Step 1: Simplify to 1-hop traversal**
 
@@ -394,7 +394,7 @@ async def get_entity_neighbors(
 **Step 2: Commit**
 
 ```bash
-git add zomma_kg/storage/duckdb/queries.py
+git add vanna_kg/storage/duckdb/queries.py
 git commit -m "refactor(queries): simplify get_entity_neighbors to 1-hop"
 ```
 
@@ -403,7 +403,7 @@ git commit -m "refactor(queries): simplify get_entity_neighbors to 1-hop"
 ## Task 7: Update get_topic_chunks Query
 
 **Files:**
-- Modify: `zomma_kg/storage/duckdb/queries.py:415-454`
+- Modify: `vanna_kg/storage/duckdb/queries.py:415-454`
 
 **Step 1: Update query for new edge model**
 
@@ -458,7 +458,7 @@ async def get_topic_chunks(
 **Step 2: Commit**
 
 ```bash
-git add zomma_kg/storage/duckdb/queries.py
+git add vanna_kg/storage/duckdb/queries.py
 git commit -m "refactor(queries): update get_topic_chunks for direct edges"
 ```
 

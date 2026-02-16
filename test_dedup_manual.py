@@ -9,10 +9,10 @@ import asyncio
 
 from dotenv import load_dotenv
 
-from zomma_kg.ingestion.resolution import deduplicate_entities
-from zomma_kg.providers.llm.openai import OpenAILLMProvider
-from zomma_kg.providers.embedding.openai import OpenAIEmbeddingProvider
-from zomma_kg.types.entities import EnumeratedEntity
+from vanna_kg.ingestion.resolution import deduplicate_entities
+from vanna_kg.providers.llm.openai import OpenAILLMProvider
+from vanna_kg.providers.embedding.openai import OpenAIEmbeddingProvider
+from vanna_kg.types.entities import EnumeratedEntity
 
 load_dotenv()
 

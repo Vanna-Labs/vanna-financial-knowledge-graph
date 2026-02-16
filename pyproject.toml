@@ -1,11 +1,11 @@
 [project]
-name = "zomma-kg"
+name = "vanna-kg"
 version = "0.3.0"
 description = "Embedded knowledge graph library for document understanding"
 readme = "README.md"
 requires-python = ">=3.10"
 license = {file = "LICENSE"}
-authors = [{name = "Zomma Labs"}]
+authors = [{name = "Vanna Labs"}]
 keywords = [
     "knowledge-graph",
     "rag",
@@ -79,13 +79,13 @@ mcp = [
 
 # Bundles
 cloud = [
-    "zomma-kg[openai,anthropic,google,voyage]",
+    "vanna-kg[openai,anthropic,google,voyage]",
 ]
 all = [
-    "zomma-kg[cloud,mcp]",
+    "vanna-kg[cloud,mcp]",
 ]
 full = [
-    "zomma-kg[all,local-embed]",
+    "vanna-kg[all,local-embed]",
 ]
 
 # Development
@@ -97,32 +97,32 @@ dev = [
 ]
 
 [project.scripts]
-zomma-kg = "zomma_kg.cli:main"
+vanna-kg = "vanna_kg.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/Zomma-Labs/zomma-kg"
-Documentation = "https://zomma-kg.readthedocs.io"
-Repository = "https://github.com/Zomma-Labs/zomma-kg"
-Issues = "https://github.com/Zomma-Labs/zomma-kg/issues"
+Homepage = "https://github.com/Vanna-Labs/vanna-kg"
+Documentation = "https://vanna-kg.readthedocs.io"
+Repository = "https://github.com/Vanna-Labs/vanna-kg"
+Issues = "https://github.com/Vanna-Labs/vanna-kg/issues"
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["zomma_kg"]
+packages = ["vanna_kg"]
 
 [tool.hatch.build.targets.sdist]
 include = [
-    "zomma_kg/**/*.py",
-    "zomma_kg/py.typed",
-    "zomma_kg/data/**/*.json",
+    "vanna_kg/**/*.py",
+    "vanna_kg/py.typed",
+    "vanna_kg/data/**/*.json",
     "LICENSE",
     "README.md",
 ]
 
 [tool.hatch.build.targets.wheel.force-include]
-"zomma_kg/data" = "zomma_kg/data"
+"vanna_kg/data" = "vanna_kg/data"
 
 [tool.ruff]
 line-length = 100

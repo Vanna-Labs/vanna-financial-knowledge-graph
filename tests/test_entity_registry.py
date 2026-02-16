@@ -4,14 +4,14 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from zomma_kg.ingestion.resolution.entity_registry import (
+from vanna_kg.ingestion.resolution.entity_registry import (
     CANDIDATE_LIMIT,
     HIGH_SIMILARITY_THRESHOLD,
     SIMILARITY_DISPLAY_THRESHOLD,
     EntityRegistry,
 )
-from zomma_kg.types import Entity, EntityType
-from zomma_kg.types.results import (
+from vanna_kg.types import Entity, EntityType
+from vanna_kg.types.results import (
     CanonicalEntity,
     EntityRegistryMatch,
     EntityResolutionResult,

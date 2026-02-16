@@ -13,7 +13,7 @@
 ## Task 1: Add Types to `types/topics.py`
 
 **Files:**
-- Modify: `zomma_kg/types/topics.py`
+- Modify: `vanna_kg/types/topics.py`
 - Test: `tests/test_types.py`
 
 **Step 1: Write failing test for TopicResolutionResult**
@@ -26,7 +26,7 @@ class TestTopicResolutionResult:
 
     def test_empty_result(self):
         """Empty result should have empty collections."""
-        from zomma_kg.types.topics import TopicResolutionResult
+        from vanna_kg.types.topics import TopicResolutionResult
 
         result = TopicResolutionResult()
         assert result.resolved_topics == []
@@ -35,7 +35,7 @@ class TestTopicResolutionResult:
 
     def test_result_with_data(self):
         """Result should correctly store all fields."""
-        from zomma_kg.types.topics import TopicResolution, TopicResolutionResult
+        from vanna_kg.types.topics import TopicResolution, TopicResolutionResult
 
         topic = TopicResolution(
             uuid="topic-uuid",
@@ -60,7 +60,7 @@ Expected: FAIL with ImportError for TopicResolutionResult
 
 **Step 3: Add TopicResolutionResult to types/topics.py**
 
-Add after `BatchTopicDefinitions` class in `zomma_kg/types/topics.py`:
+Add after `BatchTopicDefinitions` class in `vanna_kg/types/topics.py`:
 
 ```python
 class TopicResolutionResult(BaseModel):
@@ -88,7 +88,7 @@ Expected: PASS
 **Step 5: Commit**
 
 ```bash
-git add zomma_kg/types/topics.py tests/test_types.py
+git add vanna_kg/types/topics.py tests/test_types.py
 git commit -m "feat(types): add TopicResolutionResult"
 ```
 
@@ -97,7 +97,7 @@ git commit -m "feat(types): add TopicResolutionResult"
 ## Task 2: Add LLM Response Types
 
 **Files:**
-- Modify: `zomma_kg/types/topics.py`
+- Modify: `vanna_kg/types/topics.py`
 - Test: `tests/test_types.py`
 
 **Step 1: Write failing test for TopicMatchDecision and BatchTopicMatchResponse**
@@ -110,7 +110,7 @@ class TestTopicMatchTypes:
 
     def test_topic_match_decision_with_match(self):
         """TopicMatchDecision should store match decision."""
-        from zomma_kg.types.topics import TopicMatchDecision
+        from vanna_kg.types.topics import TopicMatchDecision
 
         decision = TopicMatchDecision(
             topic="M&A",
@@ -123,7 +123,7 @@ class TestTopicMatchTypes:
 
     def test_topic_match_decision_no_match(self):
         """TopicMatchDecision should allow null for no match."""
-        from zomma_kg.types.topics import TopicMatchDecision
+        from vanna_kg.types.topics import TopicMatchDecision
 
         decision = TopicMatchDecision(
             topic="Random Noise",
@@ -134,7 +134,7 @@ class TestTopicMatchTypes:
 
     def test_batch_topic_match_response(self):
         """BatchTopicMatchResponse should contain list of decisions."""
-        from zomma_kg.types.topics import BatchTopicMatchResponse, TopicMatchDecision
+        from vanna_kg.types.topics import BatchTopicMatchResponse, TopicMatchDecision
 
         decisions = [
             TopicMatchDecision(topic="M&A", selected_number=1, reasoning="Match."),
@@ -153,7 +153,7 @@ Expected: FAIL with ImportError
 
 **Step 3: Add types to topics.py**
 
-Add after `TopicResolutionResult` in `zomma_kg/types/topics.py`:
+Add after `TopicResolutionResult` in `vanna_kg/types/topics.py`:
 
 ```python
 class TopicMatchDecision(BaseModel):
@@ -183,7 +183,7 @@ Expected: PASS
 **Step 5: Commit**
 
 ```bash
-git add zomma_kg/types/topics.py tests/test_types.py
+git add vanna_kg/types/topics.py tests/test_types.py
 git commit -m "feat(types): add TopicMatchDecision and BatchTopicMatchResponse"
 ```
 
@@ -192,19 +192,19 @@ git commit -m "feat(types): add TopicMatchDecision and BatchTopicMatchResponse"
 ## Task 3: Copy Financial Topics JSON
 
 **Files:**
-- Create: `zomma_kg/data/topics/financial_topics.json`
+- Create: `vanna_kg/data/topics/financial_topics.json`
 - Modify: `pyproject.toml`
 
 **Step 1: Create data directory and copy JSON**
 
 ```bash
-mkdir -p zomma_kg/data/topics
-cp /home/rithv/Programming/Startups/ZommaLabsKG/zomma_kg/data/topics/financial_topics.json zomma_kg/data/topics/
+mkdir -p vanna_kg/data/topics
+cp /home/rithv/Programming/Startups/VannaLabsKG/vanna_kg/data/topics/financial_topics.json vanna_kg/data/topics/
 ```
 
 **Step 2: Verify file exists and has content**
 
-Run: `python -c "import json; data = json.load(open('zomma_kg/data/topics/financial_topics.json')); print(f'Loaded {len(data)} topics')"`
+Run: `python -c "import json; data = json.load(open('vanna_kg/data/topics/financial_topics.json')); print(f'Loaded {len(data)} topics')"`
 Expected: "Loaded 140 topics" (approximately)
 
 **Step 3: Update pyproject.toml to include data files**
@@ -213,27 +213,27 @@ Add after `[tool.hatch.build.targets.wheel]` section in `pyproject.toml`:
 
 ```toml
 [tool.hatch.build.targets.wheel]
-packages = ["zomma_kg"]
+packages = ["vanna_kg"]
 
 [tool.hatch.build.targets.sdist]
 include = [
-    "zomma_kg/**/*.py",
-    "zomma_kg/data/**/*.json",
+    "vanna_kg/**/*.py",
+    "vanna_kg/data/**/*.json",
 ]
 
 [tool.hatch.build.targets.wheel.force-include]
-"zomma_kg/data" = "zomma_kg/data"
+"vanna_kg/data" = "vanna_kg/data"
 ```
 
 **Step 4: Verify package includes data**
 
-Run: `python -c "from pathlib import Path; p = Path('zomma_kg/data/topics/financial_topics.json'); print(f'Found: {p.exists()}, Size: {p.stat().st_size} bytes')"`
+Run: `python -c "from pathlib import Path; p = Path('vanna_kg/data/topics/financial_topics.json'); print(f'Found: {p.exists()}, Size: {p.stat().st_size} bytes')"`
 Expected: Found: True, Size: ~100KB
 
 **Step 5: Commit**
 
 ```bash
-git add zomma_kg/data/topics/financial_topics.json pyproject.toml
+git add vanna_kg/data/topics/financial_topics.json pyproject.toml
 git commit -m "feat: add financial topics ontology JSON"
 ```
 
@@ -242,7 +242,7 @@ git commit -m "feat: add financial topics ontology JSON"
 ## Task 4: Create TopicResolver Skeleton with Constructor
 
 **Files:**
-- Create: `zomma_kg/ingestion/resolution/topic_resolver.py`
+- Create: `vanna_kg/ingestion/resolution/topic_resolver.py`
 - Test: `tests/test_topic_resolver.py`
 
 **Step 1: Write failing test for TopicResolver construction**
@@ -262,7 +262,7 @@ class TestTopicResolverConstruction:
 
     def test_constructor_with_defaults(self):
         """TopicResolver should accept dependencies and use defaults."""
-        from zomma_kg.ingestion.resolution.topic_resolver import TopicResolver
+        from vanna_kg.ingestion.resolution.topic_resolver import TopicResolver
 
         indices = MagicMock()
         llm = MagicMock()
@@ -283,7 +283,7 @@ class TestTopicResolverConstruction:
 
     def test_constructor_with_custom_values(self):
         """TopicResolver should accept custom configuration."""
-        from zomma_kg.ingestion.resolution.topic_resolver import TopicResolver
+        from vanna_kg.ingestion.resolution.topic_resolver import TopicResolver
 
         indices = MagicMock()
         llm = MagicMock()
@@ -318,7 +318,7 @@ Expected: FAIL with ImportError
 
 **Step 3: Create topic_resolver.py with constructor**
 
-Create `zomma_kg/ingestion/resolution/topic_resolver.py`:
+Create `vanna_kg/ingestion/resolution/topic_resolver.py`:
 
 ```python
 """
@@ -339,10 +339,10 @@ import logging
 from datetime import datetime, timezone
 from pathlib import Path
 
-from zomma_kg.config import KGConfig
-from zomma_kg.providers.base import EmbeddingProvider, LLMProvider
-from zomma_kg.storage.lancedb.indices import LanceDBIndices
-from zomma_kg.types.topics import (
+from vanna_kg.config import KGConfig
+from vanna_kg.providers.base import EmbeddingProvider, LLMProvider
+from vanna_kg.storage.lancedb.indices import LanceDBIndices
+from vanna_kg.types.topics import (
     BatchTopicMatchResponse,
     TopicDefinition,
     TopicResolution,
@@ -415,7 +415,7 @@ Expected: PASS
 **Step 5: Commit**
 
 ```bash
-git add zomma_kg/ingestion/resolution/topic_resolver.py tests/test_topic_resolver.py
+git add vanna_kg/ingestion/resolution/topic_resolver.py tests/test_topic_resolver.py
 git commit -m "feat(topic_resolver): add TopicResolver skeleton with constructor"
 ```
 
@@ -424,7 +424,7 @@ git commit -m "feat(topic_resolver): add TopicResolver skeleton with constructor
 ## Task 5: Implement Ontology Loading with Hash Detection
 
 **Files:**
-- Modify: `zomma_kg/ingestion/resolution/topic_resolver.py`
+- Modify: `vanna_kg/ingestion/resolution/topic_resolver.py`
 - Test: `tests/test_topic_resolver.py`
 
 **Step 1: Write failing test for ontology loading**
@@ -440,13 +440,13 @@ class TestOntologyLoading:
         """Create a small test ontology JSON."""
         ontology = [
             {
-                "uri": "https://kg.zommalabs.com/topic/Inflation",
+                "uri": "https://kg.vannalabs.com/topic/Inflation",
                 "label": "Inflation",
                 "definition": "A general increase in prices.",
                 "synonyms": ["CPI", "Price Increases"],
             },
             {
-                "uri": "https://kg.zommalabs.com/topic/GDP",
+                "uri": "https://kg.vannalabs.com/topic/GDP",
                 "label": "GDP",
                 "definition": "Gross domestic product.",
                 "synonyms": ["Economic Output"],
@@ -458,7 +458,7 @@ class TestOntologyLoading:
 
     def test_load_ontology_entries(self, small_ontology):
         """_load_ontology_entries should parse JSON correctly."""
-        from zomma_kg.ingestion.resolution.topic_resolver import TopicResolver
+        from vanna_kg.ingestion.resolution.topic_resolver import TopicResolver
 
         resolver = TopicResolver.__new__(TopicResolver)
         entries = resolver._load_ontology_entries(small_ontology)
@@ -469,7 +469,7 @@ class TestOntologyLoading:
 
     def test_compute_ontology_hash(self, small_ontology):
         """_compute_ontology_hash should return consistent hash."""
-        from zomma_kg.ingestion.resolution.topic_resolver import TopicResolver
+        from vanna_kg.ingestion.resolution.topic_resolver import TopicResolver
 
         resolver = TopicResolver.__new__(TopicResolver)
         hash1 = resolver._compute_ontology_hash(small_ontology)
@@ -480,7 +480,7 @@ class TestOntologyLoading:
 
     def test_generate_embedding_texts(self, small_ontology):
         """_generate_embedding_texts should create label:def and synonym:def pairs."""
-        from zomma_kg.ingestion.resolution.topic_resolver import TopicResolver
+        from vanna_kg.ingestion.resolution.topic_resolver import TopicResolver
 
         resolver = TopicResolver.__new__(TopicResolver)
         entries = resolver._load_ontology_entries(small_ontology)
@@ -513,8 +513,8 @@ Add to `TopicResolver` class in `topic_resolver.py`:
     def _get_ontology_path(self) -> Path:
         """Get path to the ontology JSON file."""
         # Use package data path
-        import zomma_kg
-        package_dir = Path(zomma_kg.__file__).parent
+        import vanna_kg
+        package_dir = Path(vanna_kg.__file__).parent
         return package_dir / "data" / "topics" / "financial_topics.json"
 
     def _get_hash_file_path(self) -> Path:
@@ -576,7 +576,7 @@ Expected: PASS
 **Step 5: Commit**
 
 ```bash
-git add zomma_kg/ingestion/resolution/topic_resolver.py tests/test_topic_resolver.py
+git add vanna_kg/ingestion/resolution/topic_resolver.py tests/test_topic_resolver.py
 git commit -m "feat(topic_resolver): add ontology loading and hash computation"
 ```
 
@@ -585,7 +585,7 @@ git commit -m "feat(topic_resolver): add ontology loading and hash computation"
 ## Task 6: Implement Hash-Based Cache and Reload
 
 **Files:**
-- Modify: `zomma_kg/ingestion/resolution/topic_resolver.py`
+- Modify: `vanna_kg/ingestion/resolution/topic_resolver.py`
 - Test: `tests/test_topic_resolver.py`
 
 **Step 1: Write failing test for hash-based caching**
@@ -610,7 +610,7 @@ class TestOntologyCache:
         """Create a small test ontology JSON."""
         ontology = [
             {
-                "uri": "https://kg.zommalabs.com/topic/Inflation",
+                "uri": "https://kg.vannalabs.com/topic/Inflation",
                 "label": "Inflation",
                 "definition": "A general increase in prices.",
                 "synonyms": [],
@@ -622,7 +622,7 @@ class TestOntologyCache:
 
     def test_should_reload_no_hash_file(self, mock_indices, small_ontology_path):
         """Should reload when no hash file exists."""
-        from zomma_kg.ingestion.resolution.topic_resolver import TopicResolver
+        from vanna_kg.ingestion.resolution.topic_resolver import TopicResolver
 
         resolver = TopicResolver.__new__(TopicResolver)
         resolver.indices = mock_indices
@@ -631,7 +631,7 @@ class TestOntologyCache:
 
     def test_should_reload_hash_matches(self, mock_indices, small_ontology_path):
         """Should not reload when hash matches."""
-        from zomma_kg.ingestion.resolution.topic_resolver import TopicResolver
+        from vanna_kg.ingestion.resolution.topic_resolver import TopicResolver
 
         resolver = TopicResolver.__new__(TopicResolver)
         resolver.indices = mock_indices
@@ -645,7 +645,7 @@ class TestOntologyCache:
 
     def test_should_reload_hash_differs(self, mock_indices, small_ontology_path):
         """Should reload when hash differs."""
-        from zomma_kg.ingestion.resolution.topic_resolver import TopicResolver
+        from vanna_kg.ingestion.resolution.topic_resolver import TopicResolver
 
         resolver = TopicResolver.__new__(TopicResolver)
         resolver.indices = mock_indices
@@ -658,7 +658,7 @@ class TestOntologyCache:
 
     def test_save_ontology_hash(self, mock_indices, small_ontology_path):
         """_save_ontology_hash should persist hash to file."""
-        from zomma_kg.ingestion.resolution.topic_resolver import TopicResolver
+        from vanna_kg.ingestion.resolution.topic_resolver import TopicResolver
 
         resolver = TopicResolver.__new__(TopicResolver)
         resolver.indices = mock_indices
@@ -717,7 +717,7 @@ Expected: PASS
 **Step 5: Commit**
 
 ```bash
-git add zomma_kg/ingestion/resolution/topic_resolver.py tests/test_topic_resolver.py
+git add vanna_kg/ingestion/resolution/topic_resolver.py tests/test_topic_resolver.py
 git commit -m "feat(topic_resolver): add hash-based ontology caching"
 ```
 
@@ -726,7 +726,7 @@ git commit -m "feat(topic_resolver): add hash-based ontology caching"
 ## Task 7: Implement _ensure_ontology_loaded and reload_ontology
 
 **Files:**
-- Modify: `zomma_kg/ingestion/resolution/topic_resolver.py`
+- Modify: `vanna_kg/ingestion/resolution/topic_resolver.py`
 - Test: `tests/test_topic_resolver.py`
 
 **Step 1: Write failing test for ensure_ontology_loaded**
@@ -756,7 +756,7 @@ class TestEnsureOntologyLoaded:
         """Create test ontology file."""
         ontology = [
             {
-                "uri": "https://kg.zommalabs.com/topic/Test",
+                "uri": "https://kg.vannalabs.com/topic/Test",
                 "label": "Test Topic",
                 "definition": "A test topic.",
                 "synonyms": [],
@@ -771,7 +771,7 @@ class TestEnsureOntologyLoaded:
         self, mock_resolver_deps, test_ontology, monkeypatch
     ):
         """_ensure_ontology_loaded should load on first call."""
-        from zomma_kg.ingestion.resolution.topic_resolver import TopicResolver
+        from vanna_kg.ingestion.resolution.topic_resolver import TopicResolver
 
         indices, llm, embeddings = mock_resolver_deps
         resolver = TopicResolver(indices, llm, embeddings)
@@ -791,7 +791,7 @@ class TestEnsureOntologyLoaded:
         self, mock_resolver_deps, test_ontology, monkeypatch
     ):
         """_ensure_ontology_loaded should skip if already loaded and hash matches."""
-        from zomma_kg.ingestion.resolution.topic_resolver import TopicResolver
+        from vanna_kg.ingestion.resolution.topic_resolver import TopicResolver
 
         indices, llm, embeddings = mock_resolver_deps
         resolver = TopicResolver(indices, llm, embeddings)
@@ -810,7 +810,7 @@ class TestEnsureOntologyLoaded:
         self, mock_resolver_deps, test_ontology, monkeypatch
     ):
         """reload_ontology should reload even when hash matches."""
-        from zomma_kg.ingestion.resolution.topic_resolver import TopicResolver
+        from vanna_kg.ingestion.resolution.topic_resolver import TopicResolver
 
         indices, llm, embeddings = mock_resolver_deps
         resolver = TopicResolver(indices, llm, embeddings)
@@ -896,7 +896,7 @@ Expected: PASS
 **Step 5: Commit**
 
 ```bash
-git add zomma_kg/ingestion/resolution/topic_resolver.py tests/test_topic_resolver.py
+git add vanna_kg/ingestion/resolution/topic_resolver.py tests/test_topic_resolver.py
 git commit -m "feat(topic_resolver): add lazy ontology loading with hash detection"
 ```
 
@@ -905,7 +905,7 @@ git commit -m "feat(topic_resolver): add lazy ontology loading with hash detecti
 ## Task 8: Implement Topic-to-Text Helper
 
 **Files:**
-- Modify: `zomma_kg/ingestion/resolution/topic_resolver.py`
+- Modify: `vanna_kg/ingestion/resolution/topic_resolver.py`
 - Test: `tests/test_topic_resolver.py`
 
 **Step 1: Write failing test for _topic_to_text**
@@ -918,8 +918,8 @@ class TestTopicToText:
 
     def test_topic_to_text_format(self):
         """Text format should be 'topic: definition'."""
-        from zomma_kg.ingestion.resolution.topic_resolver import TopicResolver
-        from zomma_kg.types.topics import TopicDefinition
+        from vanna_kg.ingestion.resolution.topic_resolver import TopicResolver
+        from vanna_kg.types.topics import TopicDefinition
 
         topic = TopicDefinition(
             topic="M&A",
@@ -933,8 +933,8 @@ class TestTopicToText:
 
     def test_topic_to_text_empty_definition(self):
         """Empty definition should still produce valid text."""
-        from zomma_kg.ingestion.resolution.topic_resolver import TopicResolver
-        from zomma_kg.types.topics import TopicDefinition
+        from vanna_kg.ingestion.resolution.topic_resolver import TopicResolver
+        from vanna_kg.types.topics import TopicDefinition
 
         topic = TopicDefinition(topic="Unknown", definition="")
 
@@ -966,7 +966,7 @@ Expected: PASS
 **Step 5: Commit**
 
 ```bash
-git add zomma_kg/ingestion/resolution/topic_resolver.py tests/test_topic_resolver.py
+git add vanna_kg/ingestion/resolution/topic_resolver.py tests/test_topic_resolver.py
 git commit -m "feat(topic_resolver): add _topic_to_text helper"
 ```
 
@@ -975,7 +975,7 @@ git commit -m "feat(topic_resolver): add _topic_to_text helper"
 ## Task 9: Implement Batch LLM Verification Prompt Builder
 
 **Files:**
-- Modify: `zomma_kg/ingestion/resolution/topic_resolver.py`
+- Modify: `vanna_kg/ingestion/resolution/topic_resolver.py`
 - Test: `tests/test_topic_resolver.py`
 
 **Step 1: Write failing test for _build_batch_verification_prompt**
@@ -988,8 +988,8 @@ class TestBatchVerificationPrompt:
 
     def test_prompt_contains_all_topics(self):
         """Prompt should list all topics with their candidates."""
-        from zomma_kg.ingestion.resolution.topic_resolver import TopicResolver
-        from zomma_kg.types.topics import TopicDefinition
+        from vanna_kg.ingestion.resolution.topic_resolver import TopicResolver
+        from vanna_kg.types.topics import TopicDefinition
 
         resolver = TopicResolver.__new__(TopicResolver)
         resolver.high_similarity_flag = 0.85
@@ -1024,8 +1024,8 @@ class TestBatchVerificationPrompt:
 
     def test_prompt_flags_high_similarity(self):
         """High similarity candidates should be flagged."""
-        from zomma_kg.ingestion.resolution.topic_resolver import TopicResolver
-        from zomma_kg.types.topics import TopicDefinition
+        from vanna_kg.ingestion.resolution.topic_resolver import TopicResolver
+        from vanna_kg.types.topics import TopicDefinition
 
         resolver = TopicResolver.__new__(TopicResolver)
         resolver.high_similarity_flag = 0.85
@@ -1102,7 +1102,7 @@ Expected: PASS
 **Step 5: Commit**
 
 ```bash
-git add zomma_kg/ingestion/resolution/topic_resolver.py tests/test_topic_resolver.py
+git add vanna_kg/ingestion/resolution/topic_resolver.py tests/test_topic_resolver.py
 git commit -m "feat(topic_resolver): add batch verification prompt builder"
 ```
 
@@ -1111,7 +1111,7 @@ git commit -m "feat(topic_resolver): add batch verification prompt builder"
 ## Task 10: Implement Batch LLM Verification
 
 **Files:**
-- Modify: `zomma_kg/ingestion/resolution/topic_resolver.py`
+- Modify: `vanna_kg/ingestion/resolution/topic_resolver.py`
 - Test: `tests/test_topic_resolver.py`
 
 **Step 1: Write failing test for _verify_batch**
@@ -1125,8 +1125,8 @@ class TestVerifyBatch:
     @pytest.mark.asyncio
     async def test_verify_batch_returns_decisions(self):
         """_verify_batch should return decisions for all topics."""
-        from zomma_kg.ingestion.resolution.topic_resolver import TopicResolver
-        from zomma_kg.types.topics import (
+        from vanna_kg.ingestion.resolution.topic_resolver import TopicResolver
+        from vanna_kg.types.topics import (
             BatchTopicMatchResponse,
             TopicDefinition,
             TopicMatchDecision,
@@ -1164,8 +1164,8 @@ class TestVerifyBatch:
     @pytest.mark.asyncio
     async def test_verify_batch_handles_llm_failure(self):
         """_verify_batch should return no-match decisions on LLM failure."""
-        from zomma_kg.ingestion.resolution.topic_resolver import TopicResolver
-        from zomma_kg.types.topics import TopicDefinition
+        from vanna_kg.ingestion.resolution.topic_resolver import TopicResolver
+        from vanna_kg.types.topics import TopicDefinition
 
         llm = AsyncMock()
         llm.generate_structured = AsyncMock(side_effect=Exception("LLM error"))
@@ -1200,7 +1200,7 @@ Add to `TopicResolver` class:
         candidates_list: list[list[tuple[dict, float]]],
     ) -> list[TopicMatchDecision]:
         """Verify a batch of topics using LLM."""
-        from zomma_kg.types.topics import TopicMatchDecision
+        from vanna_kg.types.topics import TopicMatchDecision
 
         prompt = self._build_batch_verification_prompt(topics, candidates_list)
 
@@ -1231,7 +1231,7 @@ Add to `TopicResolver` class:
 Also add import at top of file:
 
 ```python
-from zomma_kg.types.topics import (
+from vanna_kg.types.topics import (
     BatchTopicMatchResponse,
     TopicDefinition,
     TopicMatchDecision,
@@ -1248,7 +1248,7 @@ Expected: PASS
 **Step 5: Commit**
 
 ```bash
-git add zomma_kg/ingestion/resolution/topic_resolver.py tests/test_topic_resolver.py
+git add vanna_kg/ingestion/resolution/topic_resolver.py tests/test_topic_resolver.py
 git commit -m "feat(topic_resolver): add batch LLM verification"
 ```
 
@@ -1257,7 +1257,7 @@ git commit -m "feat(topic_resolver): add batch LLM verification"
 ## Task 11: Implement Main resolve() Method
 
 **Files:**
-- Modify: `zomma_kg/ingestion/resolution/topic_resolver.py`
+- Modify: `vanna_kg/ingestion/resolution/topic_resolver.py`
 - Test: `tests/test_topic_resolver.py`
 
 **Step 1: Write failing test for resolve()**
@@ -1271,8 +1271,8 @@ class TestResolve:
     @pytest.fixture
     def mock_resolver(self, tmp_path):
         """Create resolver with all mocks."""
-        from zomma_kg.ingestion.resolution.topic_resolver import TopicResolver
-        from zomma_kg.types.topics import (
+        from vanna_kg.ingestion.resolution.topic_resolver import TopicResolver
+        from vanna_kg.types.topics import (
             BatchTopicMatchResponse,
             TopicMatchDecision,
         )
@@ -1307,7 +1307,7 @@ class TestResolve:
     @pytest.mark.asyncio
     async def test_resolve_with_match(self, mock_resolver):
         """Matching topic should be in resolved_topics and uuid_remap."""
-        from zomma_kg.types.topics import (
+        from vanna_kg.types.topics import (
             BatchTopicMatchResponse,
             TopicDefinition,
             TopicMatchDecision,
@@ -1341,7 +1341,7 @@ class TestResolve:
     @pytest.mark.asyncio
     async def test_resolve_no_match_collected(self, mock_resolver):
         """Unmatched topic should be in new_topics when collect_unmatched=True."""
-        from zomma_kg.types.topics import (
+        from vanna_kg.types.topics import (
             BatchTopicMatchResponse,
             TopicDefinition,
             TopicMatchDecision,
@@ -1367,7 +1367,7 @@ class TestResolve:
     @pytest.mark.asyncio
     async def test_resolve_no_match_not_collected(self, mock_resolver):
         """Unmatched topic should NOT be in new_topics when collect_unmatched=False."""
-        from zomma_kg.types.topics import (
+        from vanna_kg.types.topics import (
             BatchTopicMatchResponse,
             TopicDefinition,
             TopicMatchDecision,
@@ -1452,7 +1452,7 @@ Add to `TopicResolver` class:
         candidates_list: list[list[tuple[dict, float]]],
     ) -> list[TopicMatchDecision]:
         """Verify all topics in batches with concurrency control."""
-        from zomma_kg.types.topics import TopicMatchDecision
+        from vanna_kg.types.topics import TopicMatchDecision
 
         # Split into batches
         batches: list[tuple[list[TopicDefinition], list[list[tuple[dict, float]]]]] = []
@@ -1532,7 +1532,7 @@ Expected: PASS
 **Step 5: Commit**
 
 ```bash
-git add zomma_kg/ingestion/resolution/topic_resolver.py tests/test_topic_resolver.py
+git add vanna_kg/ingestion/resolution/topic_resolver.py tests/test_topic_resolver.py
 git commit -m "feat(topic_resolver): implement main resolve() method"
 ```
 
@@ -1541,12 +1541,12 @@ git commit -m "feat(topic_resolver): implement main resolve() method"
 ## Task 12: Export TopicResolver and Update __init__.py
 
 **Files:**
-- Modify: `zomma_kg/ingestion/resolution/__init__.py`
-- Modify: `zomma_kg/types/__init__.py` (if needed)
+- Modify: `vanna_kg/ingestion/resolution/__init__.py`
+- Modify: `vanna_kg/types/__init__.py` (if needed)
 
 **Step 1: Update resolution __init__.py**
 
-Edit `zomma_kg/ingestion/resolution/__init__.py`:
+Edit `vanna_kg/ingestion/resolution/__init__.py`:
 
 ```python
 """
@@ -1580,22 +1580,22 @@ Key Principle: Subsidiary Awareness
 See: docs/pipeline/DEDUPLICATION_SYSTEM.md
 """
 
-from zomma_kg.ingestion.resolution.entity_dedup import deduplicate_entities
-from zomma_kg.ingestion.resolution.entity_registry import EntityRegistry
-from zomma_kg.ingestion.resolution.topic_resolver import TopicResolver
+from vanna_kg.ingestion.resolution.entity_dedup import deduplicate_entities
+from vanna_kg.ingestion.resolution.entity_registry import EntityRegistry
+from vanna_kg.ingestion.resolution.topic_resolver import TopicResolver
 
 __all__ = ["deduplicate_entities", "EntityRegistry", "TopicResolver"]
 ```
 
 **Step 2: Verify import works**
 
-Run: `python -c "from zomma_kg.ingestion.resolution import TopicResolver; print('Import successful')"`
+Run: `python -c "from vanna_kg.ingestion.resolution import TopicResolver; print('Import successful')"`
 Expected: "Import successful"
 
 **Step 3: Commit**
 
 ```bash
-git add zomma_kg/ingestion/resolution/__init__.py
+git add vanna_kg/ingestion/resolution/__init__.py
 git commit -m "feat(resolution): export TopicResolver from module"
 ```
 
@@ -1615,12 +1615,12 @@ Expected: All tests PASS
 
 **Step 3: Run type checking**
 
-Run: `mypy zomma_kg/ingestion/resolution/topic_resolver.py --ignore-missing-imports`
+Run: `mypy vanna_kg/ingestion/resolution/topic_resolver.py --ignore-missing-imports`
 Expected: No errors (or only minor ones)
 
 **Step 4: Run linting**
 
-Run: `ruff check zomma_kg/ingestion/resolution/topic_resolver.py`
+Run: `ruff check vanna_kg/ingestion/resolution/topic_resolver.py`
 Expected: No errors
 
 **Step 5: Final commit**
@@ -1644,13 +1644,13 @@ Closes Phase 3 of ingestion pipeline."
 
 **Total Tasks:** 13
 **Files Created:**
-- `zomma_kg/data/topics/financial_topics.json`
-- `zomma_kg/ingestion/resolution/topic_resolver.py`
+- `vanna_kg/data/topics/financial_topics.json`
+- `vanna_kg/ingestion/resolution/topic_resolver.py`
 - `tests/test_topic_resolver.py`
 
 **Files Modified:**
-- `zomma_kg/types/topics.py`
-- `zomma_kg/ingestion/resolution/__init__.py`
+- `vanna_kg/types/topics.py`
+- `vanna_kg/ingestion/resolution/__init__.py`
 - `pyproject.toml`
 
 **Key Test Commands:**

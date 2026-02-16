@@ -32,17 +32,17 @@ Status: Completed
 
 1. **Ontology/default LanceDB group wiring mismatch in facade path**
    - Facade constructs `TopicResolver` using storage's LanceDB index:
-     - `zomma_kg/api/knowledge_graph.py:325`
-     - `zomma_kg/api/knowledge_graph.py:521`
+     - `vanna_kg/api/knowledge_graph.py:325`
+     - `vanna_kg/api/knowledge_graph.py:521`
    - That index is created in `ParquetBackend` with backend `group_id` defaulting to `"default"`:
-     - `zomma_kg/storage/parquet/backend.py:77`
+     - `vanna_kg/storage/parquet/backend.py:77`
    - But topic resolver ontology flow expects ontology-group data:
      - Ontology rows are inserted with `group_id="ontology"`:
-       - `zomma_kg/ingestion/resolution/topic_resolver.py:218`
+       - `vanna_kg/ingestion/resolution/topic_resolver.py:218`
      - Candidate search path filters by index group first:
-       - `zomma_kg/storage/lancedb/indices.py:400`
+       - `vanna_kg/storage/lancedb/indices.py:400`
      - Then resolver filters candidates to ontology group again:
-       - `zomma_kg/ingestion/resolution/topic_resolver.py:344`
+       - `vanna_kg/ingestion/resolution/topic_resolver.py:344`
 
    **Consequence:** if resolver runs on default-group index, ontology candidates can be empty, leading to `topics=0` despite no hard failure.
 
@@ -53,13 +53,13 @@ Status: Completed
 
 3. **Duplicate topic decision warnings**
    - Emitted from decision map collision logic:
-     - `zomma_kg/ingestion/resolution/topic_resolver.py:413-419`
+     - `vanna_kg/ingestion/resolution/topic_resolver.py:413-419`
    - This is likely secondary, but can still degrade match quality by overwriting decisions for repeated normalized topic keys.
 
 ## Additional nuance relevant to C acceptance
 
 - During ontology load, resolver stores topic row names as `text.split(":")[0]`:
-  - `zomma_kg/ingestion/resolution/topic_resolver.py:216`
+  - `vanna_kg/ingestion/resolution/topic_resolver.py:216`
 - Because embeddings include both labels and synonyms, returned `matched["name"]` may be synonym text rather than canonical label.
 - This can affect "map to KB topics correctly" expectations in Ticket C.
 
@@ -67,9 +67,9 @@ Status: Completed
 
 I reviewed current unstaged diffs in Ticket C-adjacent files:
 
-- `zomma_kg/api/knowledge_graph.py`: contains Ticket A/B style schema/query mapping fixes, but still constructs `TopicResolver(self._storage._lancedb, ...)` in ingestion paths.
-- `zomma_kg/ingestion/resolution/topic_resolver.py`: no Ticket C wiring change yet.
-- `zomma_kg/query/researcher.py` + `tests/test_query_pipeline.py`: chunk key mapping updates are present (Ticket B), not Ticket C ontology/default wiring tests.
+- `vanna_kg/api/knowledge_graph.py`: contains Ticket A/B style schema/query mapping fixes, but still constructs `TopicResolver(self._storage._lancedb, ...)` in ingestion paths.
+- `vanna_kg/ingestion/resolution/topic_resolver.py`: no Ticket C wiring change yet.
+- `vanna_kg/query/researcher.py` + `tests/test_query_pipeline.py`: chunk key mapping updates are present (Ticket B), not Ticket C ontology/default wiring tests.
 - `tests/test_topic_resolver.py`: no new ingestion-wiring regression tests yet.
 
 Net: Ticket C still open.

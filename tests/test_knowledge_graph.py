@@ -15,7 +15,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from zomma_kg.api.knowledge_graph import KnowledgeGraph
+from vanna_kg.api.knowledge_graph import KnowledgeGraph
 
 
 class TestKnowledgeGraphInstantiation:
@@ -34,7 +34,7 @@ class TestKnowledgeGraphInstantiation:
 
     def test_instantiation_with_custom_config(self):
         """Test instantiation with custom config."""
-        from zomma_kg.config import KGConfig
+        from vanna_kg.config import KGConfig
 
         config = KGConfig(llm_provider="openai", llm_model="gpt-4o")
         kg = KnowledgeGraph("./test_kb", config=config)
@@ -71,9 +71,9 @@ class TestKnowledgeGraphLazyInit:
             mock_storage_instance = AsyncMock()
             mock_storage_instance.initialize = AsyncMock()
 
-            with patch('zomma_kg.storage.parquet.backend.ParquetBackend', return_value=mock_storage_instance), \
-                 patch('zomma_kg.providers.llm.openai.OpenAILLMProvider', return_value=MagicMock()), \
-                 patch('zomma_kg.providers.embedding.openai.OpenAIEmbeddingProvider', return_value=MagicMock()):
+            with patch('vanna_kg.storage.parquet.backend.ParquetBackend', return_value=mock_storage_instance), \
+                 patch('vanna_kg.providers.llm.openai.OpenAILLMProvider', return_value=MagicMock()), \
+                 patch('vanna_kg.providers.embedding.openai.OpenAIEmbeddingProvider', return_value=MagicMock()):
 
                 await kg._ensure_initialized()
 
@@ -99,9 +99,9 @@ class TestKnowledgeGraphLazyInit:
             mock_storage_instance = AsyncMock()
             mock_storage_instance.initialize = AsyncMock()
 
-            with patch('zomma_kg.storage.parquet.backend.ParquetBackend', return_value=mock_storage_instance) as mock_storage, \
-                 patch('zomma_kg.providers.llm.openai.OpenAILLMProvider', return_value=MagicMock()), \
-                 patch('zomma_kg.providers.embedding.openai.OpenAIEmbeddingProvider', return_value=MagicMock()):
+            with patch('vanna_kg.storage.parquet.backend.ParquetBackend', return_value=mock_storage_instance) as mock_storage, \
+                 patch('vanna_kg.providers.llm.openai.OpenAILLMProvider', return_value=MagicMock()), \
+                 patch('vanna_kg.providers.embedding.openai.OpenAIEmbeddingProvider', return_value=MagicMock()):
 
                 await kg._ensure_initialized()
                 await kg._ensure_initialized()  # Second call should be no-op
@@ -115,12 +115,12 @@ class TestKnowledgeGraphProviderFactory:
 
     def test_create_llm_provider_openai(self):
         """Test OpenAI LLM provider creation."""
-        from zomma_kg.config import KGConfig
+        from vanna_kg.config import KGConfig
 
         config = KGConfig(llm_provider="openai", openai_api_key="test-key")
         kg = KnowledgeGraph("./test_kb", config=config)
 
-        with patch('zomma_kg.providers.llm.openai.OpenAILLMProvider') as mock_provider:
+        with patch('vanna_kg.providers.llm.openai.OpenAILLMProvider') as mock_provider:
             mock_provider.return_value = MagicMock()
             provider = kg._create_llm_provider()
             mock_provider.assert_called_once_with(
@@ -130,7 +130,7 @@ class TestKnowledgeGraphProviderFactory:
 
     def test_create_llm_provider_unknown_raises(self):
         """Test that unknown LLM provider raises ValueError."""
-        from zomma_kg.config import KGConfig
+        from vanna_kg.config import KGConfig
 
         config = KGConfig(llm_provider="unknown")
         kg = KnowledgeGraph("./test_kb", config=config)
@@ -140,19 +140,19 @@ class TestKnowledgeGraphProviderFactory:
 
     def test_create_embedding_provider_openai(self):
         """Test OpenAI embedding provider creation."""
-        from zomma_kg.config import KGConfig
+        from vanna_kg.config import KGConfig
 
         config = KGConfig(embedding_provider="openai", openai_api_key="test-key")
         kg = KnowledgeGraph("./test_kb", config=config)
 
-        with patch('zomma_kg.providers.embedding.openai.OpenAIEmbeddingProvider') as mock_provider:
+        with patch('vanna_kg.providers.embedding.openai.OpenAIEmbeddingProvider') as mock_provider:
             mock_provider.return_value = MagicMock()
             provider = kg._create_embedding_provider()
             mock_provider.assert_called_once()
 
     def test_create_embedding_provider_unknown_raises(self):
         """Test that unknown embedding provider raises ValueError."""
-        from zomma_kg.config import KGConfig
+        from vanna_kg.config import KGConfig
 
         config = KGConfig(embedding_provider="unknown")
         kg = KnowledgeGraph("./test_kb", config=config)
@@ -179,9 +179,9 @@ class TestKnowledgeGraphStats:
             mock_storage.initialize = AsyncMock()
             mock_storage.close = AsyncMock()
 
-            with patch('zomma_kg.storage.parquet.backend.ParquetBackend', return_value=mock_storage), \
-                 patch('zomma_kg.providers.llm.openai.OpenAILLMProvider', return_value=MagicMock()), \
-                 patch('zomma_kg.providers.embedding.openai.OpenAIEmbeddingProvider', return_value=MagicMock()):
+            with patch('vanna_kg.storage.parquet.backend.ParquetBackend', return_value=mock_storage), \
+                 patch('vanna_kg.providers.llm.openai.OpenAILLMProvider', return_value=MagicMock()), \
+                 patch('vanna_kg.providers.embedding.openai.OpenAIEmbeddingProvider', return_value=MagicMock()):
 
                 stats = await kg.stats()
 
@@ -207,9 +207,9 @@ class TestKnowledgeGraphStats:
             mock_storage.initialize = AsyncMock()
             mock_storage.close = AsyncMock()
 
-            with patch('zomma_kg.storage.parquet.backend.ParquetBackend', return_value=mock_storage), \
-                 patch('zomma_kg.providers.llm.openai.OpenAILLMProvider', return_value=MagicMock()), \
-                 patch('zomma_kg.providers.embedding.openai.OpenAIEmbeddingProvider', return_value=MagicMock()):
+            with patch('vanna_kg.storage.parquet.backend.ParquetBackend', return_value=mock_storage), \
+                 patch('vanna_kg.providers.llm.openai.OpenAILLMProvider', return_value=MagicMock()), \
+                 patch('vanna_kg.providers.embedding.openai.OpenAIEmbeddingProvider', return_value=MagicMock()):
 
                 stats = kg.stats_sync()
 
@@ -229,9 +229,9 @@ class TestKnowledgeGraphLifecycle:
             mock_storage.initialize = AsyncMock()
             mock_storage.close = AsyncMock()
 
-            with patch('zomma_kg.storage.parquet.backend.ParquetBackend', return_value=mock_storage), \
-                 patch('zomma_kg.providers.llm.openai.OpenAILLMProvider', return_value=MagicMock()), \
-                 patch('zomma_kg.providers.embedding.openai.OpenAIEmbeddingProvider', return_value=MagicMock()):
+            with patch('vanna_kg.storage.parquet.backend.ParquetBackend', return_value=mock_storage), \
+                 patch('vanna_kg.providers.llm.openai.OpenAILLMProvider', return_value=MagicMock()), \
+                 patch('vanna_kg.providers.embedding.openai.OpenAIEmbeddingProvider', return_value=MagicMock()):
 
                 await kg._ensure_initialized()
                 assert kg.is_initialized is True
@@ -252,9 +252,9 @@ class TestKnowledgeGraphLifecycle:
             mock_storage.initialize = AsyncMock()
             mock_storage.close = AsyncMock()
 
-            with patch('zomma_kg.storage.parquet.backend.ParquetBackend', return_value=mock_storage), \
-                 patch('zomma_kg.providers.llm.openai.OpenAILLMProvider', return_value=MagicMock()), \
-                 patch('zomma_kg.providers.embedding.openai.OpenAIEmbeddingProvider', return_value=MagicMock()):
+            with patch('vanna_kg.storage.parquet.backend.ParquetBackend', return_value=mock_storage), \
+                 patch('vanna_kg.providers.llm.openai.OpenAILLMProvider', return_value=MagicMock()), \
+                 patch('vanna_kg.providers.embedding.openai.OpenAIEmbeddingProvider', return_value=MagicMock()):
 
                 async with KnowledgeGraph(tmpdir) as kg:
                     assert kg.is_initialized is True
@@ -286,10 +286,10 @@ class TestKnowledgeGraphQuery:
                 timing={"total": 100},
             ))
 
-            with patch('zomma_kg.storage.parquet.backend.ParquetBackend', return_value=mock_storage), \
-                 patch('zomma_kg.providers.llm.openai.OpenAILLMProvider', return_value=MagicMock()), \
-                 patch('zomma_kg.providers.embedding.openai.OpenAIEmbeddingProvider', return_value=MagicMock()), \
-                 patch('zomma_kg.query.GraphRAGPipeline', return_value=mock_pipeline):
+            with patch('vanna_kg.storage.parquet.backend.ParquetBackend', return_value=mock_storage), \
+                 patch('vanna_kg.providers.llm.openai.OpenAILLMProvider', return_value=MagicMock()), \
+                 patch('vanna_kg.providers.embedding.openai.OpenAIEmbeddingProvider', return_value=MagicMock()), \
+                 patch('vanna_kg.query.GraphRAGPipeline', return_value=mock_pipeline):
 
                 result = await kg.query("What is the answer?")
 
@@ -322,10 +322,10 @@ class TestKnowledgeGraphQuery:
                 timing={},
             ))
 
-            with patch('zomma_kg.storage.parquet.backend.ParquetBackend', return_value=mock_storage), \
-                 patch('zomma_kg.providers.llm.openai.OpenAILLMProvider', return_value=MagicMock()), \
-                 patch('zomma_kg.providers.embedding.openai.OpenAIEmbeddingProvider', return_value=MagicMock()), \
-                 patch('zomma_kg.query.GraphRAGPipeline', return_value=mock_pipeline) as mock_cls:
+            with patch('vanna_kg.storage.parquet.backend.ParquetBackend', return_value=mock_storage), \
+                 patch('vanna_kg.providers.llm.openai.OpenAILLMProvider', return_value=MagicMock()), \
+                 patch('vanna_kg.providers.embedding.openai.OpenAIEmbeddingProvider', return_value=MagicMock()), \
+                 patch('vanna_kg.query.GraphRAGPipeline', return_value=mock_pipeline) as mock_cls:
 
                 await kg.query("Question 1")
                 await kg.query("Question 2")
@@ -361,10 +361,10 @@ class TestKnowledgeGraphQuery:
                 timing={"total": 42},
             ))
 
-            with patch('zomma_kg.storage.parquet.backend.ParquetBackend', return_value=mock_storage), \
-                 patch('zomma_kg.providers.llm.openai.OpenAILLMProvider', return_value=MagicMock()), \
-                 patch('zomma_kg.providers.embedding.openai.OpenAIEmbeddingProvider', return_value=MagicMock()), \
-                 patch('zomma_kg.query.GraphRAGPipeline', return_value=mock_pipeline):
+            with patch('vanna_kg.storage.parquet.backend.ParquetBackend', return_value=mock_storage), \
+                 patch('vanna_kg.providers.llm.openai.OpenAILLMProvider', return_value=MagicMock()), \
+                 patch('vanna_kg.providers.embedding.openai.OpenAIEmbeddingProvider', return_value=MagicMock()), \
+                 patch('vanna_kg.query.GraphRAGPipeline', return_value=mock_pipeline):
 
                 result = await kg.query("What did Apple acquire in 2024?")
 
@@ -386,7 +386,7 @@ class TestKnowledgeGraphIngestionSchemaAlignment:
     @pytest.mark.asyncio
     async def test_ingest_pdf_and_markdown_share_pipeline_payload_shape(self):
         """ingest_pdf and ingest_markdown should build equivalent shared-stage payloads."""
-        from zomma_kg.types import (
+        from vanna_kg.types import (
             AssemblyResult,
             CanonicalEntity,
             ChainOfThoughtResult,
@@ -396,7 +396,7 @@ class TestKnowledgeGraphIngestionSchemaAlignment:
             EnumeratedEntity,
             ExtractedFact,
         )
-        from zomma_kg.types.topics import TopicResolution, TopicResolutionResult
+        from vanna_kg.types.topics import TopicResolution, TopicResolutionResult
 
         with tempfile.TemporaryDirectory() as tmpdir:
             kb_path = Path(tmpdir)
@@ -526,23 +526,23 @@ class TestKnowledgeGraphIngestionSchemaAlignment:
             pdf_progress: list[tuple[str, float]] = []
 
             with patch(
-                "zomma_kg.ingestion.chunking.chunk_markdown", return_value=chunk_inputs
+                "vanna_kg.ingestion.chunking.chunk_markdown", return_value=chunk_inputs
             ), patch(
-                "zomma_kg.ingestion.chunking.chunk_pdf", AsyncMock(return_value=chunk_inputs)
+                "vanna_kg.ingestion.chunking.chunk_pdf", AsyncMock(return_value=chunk_inputs)
             ), patch(
-                "zomma_kg.ingestion.extraction.extract_from_chunks",
+                "vanna_kg.ingestion.extraction.extract_from_chunks",
                 AsyncMock(side_effect=[extraction_results, extraction_results]),
             ), patch(
-                "zomma_kg.ingestion.resolution.deduplicate_entities",
+                "vanna_kg.ingestion.resolution.deduplicate_entities",
                 AsyncMock(side_effect=[dedup_result, dedup_result]),
             ), patch(
-                "zomma_kg.ingestion.resolution.EntityRegistry",
+                "vanna_kg.ingestion.resolution.EntityRegistry",
                 side_effect=[mock_entity_registry_markdown, mock_entity_registry_pdf],
             ), patch(
-                "zomma_kg.ingestion.resolution.TopicResolver",
+                "vanna_kg.ingestion.resolution.TopicResolver",
                 side_effect=[mock_topic_resolver_markdown, mock_topic_resolver_pdf],
             ), patch(
-                "zomma_kg.ingestion.assembly.Assembler",
+                "vanna_kg.ingestion.assembly.Assembler",
                 side_effect=[mock_assembler_markdown, mock_assembler_pdf],
             ), patch.object(
                 KnowledgeGraph, "_create_ontology_index", AsyncMock(return_value=MagicMock())
@@ -616,7 +616,7 @@ class TestKnowledgeGraphIngestionSchemaAlignment:
     @pytest.mark.asyncio
     async def test_ingest_markdown_uses_current_schema_fields(self):
         """ingest_markdown should build models with current field names."""
-        from zomma_kg.types import (
+        from vanna_kg.types import (
             AssemblyResult,
             CanonicalEntity,
             ChainOfThoughtResult,
@@ -626,7 +626,7 @@ class TestKnowledgeGraphIngestionSchemaAlignment:
             EnumeratedEntity,
             ExtractedFact,
         )
-        from zomma_kg.types.topics import TopicResolution, TopicResolutionResult
+        from vanna_kg.types.topics import TopicResolution, TopicResolutionResult
 
         with tempfile.TemporaryDirectory() as tmpdir:
             kb_path = Path(tmpdir)
@@ -734,12 +734,12 @@ class TestKnowledgeGraphIngestionSchemaAlignment:
                 relationships_written=1,
             ))
 
-            with patch('zomma_kg.ingestion.chunking.chunk_markdown', return_value=chunk_inputs), \
-                 patch('zomma_kg.ingestion.extraction.extract_from_chunks', AsyncMock(return_value=extraction_results)), \
-                 patch('zomma_kg.ingestion.resolution.deduplicate_entities', AsyncMock(return_value=dedup_result)), \
-                 patch('zomma_kg.ingestion.resolution.EntityRegistry', return_value=mock_entity_registry), \
-                 patch('zomma_kg.ingestion.resolution.TopicResolver', return_value=mock_topic_resolver), \
-                 patch('zomma_kg.ingestion.assembly.Assembler', return_value=mock_assembler):
+            with patch('vanna_kg.ingestion.chunking.chunk_markdown', return_value=chunk_inputs), \
+                 patch('vanna_kg.ingestion.extraction.extract_from_chunks', AsyncMock(return_value=extraction_results)), \
+                 patch('vanna_kg.ingestion.resolution.deduplicate_entities', AsyncMock(return_value=dedup_result)), \
+                 patch('vanna_kg.ingestion.resolution.EntityRegistry', return_value=mock_entity_registry), \
+                 patch('vanna_kg.ingestion.resolution.TopicResolver', return_value=mock_topic_resolver), \
+                 patch('vanna_kg.ingestion.assembly.Assembler', return_value=mock_assembler):
 
                 result = await kg.ingest_markdown(md_path, document_date="2014-05-28")
 
@@ -767,13 +767,13 @@ class TestKnowledgeGraphIngestionSchemaAlignment:
     @pytest.mark.asyncio
     async def test_ingest_markdown_max_chunks_and_progress_callback(self):
         """ingest_markdown should apply max_chunks and report stage progress."""
-        from zomma_kg.types import (
+        from vanna_kg.types import (
             AssemblyResult,
             ChunkInput,
             EntityDeduplicationOutput,
             EntityResolutionResult,
         )
-        from zomma_kg.types.topics import TopicResolutionResult
+        from vanna_kg.types.topics import TopicResolutionResult
 
         with tempfile.TemporaryDirectory() as tmpdir:
             kb_path = Path(tmpdir)
@@ -826,18 +826,18 @@ class TestKnowledgeGraphIngestionSchemaAlignment:
 
             extract_mock = AsyncMock(return_value=[])
             with patch(
-                "zomma_kg.ingestion.chunking.chunk_markdown", return_value=chunk_inputs
+                "vanna_kg.ingestion.chunking.chunk_markdown", return_value=chunk_inputs
             ), patch(
-                "zomma_kg.ingestion.extraction.extract_from_chunks", extract_mock
+                "vanna_kg.ingestion.extraction.extract_from_chunks", extract_mock
             ), patch(
-                "zomma_kg.ingestion.resolution.deduplicate_entities",
+                "vanna_kg.ingestion.resolution.deduplicate_entities",
                 AsyncMock(return_value=dedup_result),
             ), patch(
-                "zomma_kg.ingestion.resolution.EntityRegistry", return_value=mock_entity_registry
+                "vanna_kg.ingestion.resolution.EntityRegistry", return_value=mock_entity_registry
             ), patch(
-                "zomma_kg.ingestion.resolution.TopicResolver", return_value=mock_topic_resolver
+                "vanna_kg.ingestion.resolution.TopicResolver", return_value=mock_topic_resolver
             ), patch(
-                "zomma_kg.ingestion.assembly.Assembler", return_value=mock_assembler
+                "vanna_kg.ingestion.assembly.Assembler", return_value=mock_assembler
             ), patch.object(
                 KnowledgeGraph, "_create_ontology_index", AsyncMock(return_value=MagicMock())
             ):
@@ -882,7 +882,7 @@ class TestKnowledgeGraphIngestionSchemaAlignment:
             kg._llm = MagicMock()
             kg._embeddings = MagicMock()
 
-            with patch("zomma_kg.ingestion.chunking.chunk_markdown", return_value=[]):
+            with patch("vanna_kg.ingestion.chunking.chunk_markdown", return_value=[]):
                 with pytest.raises(ValueError, match="max_chunks must be a positive integer"):
                     await kg.ingest_markdown(md_path, max_chunks=0)
 
@@ -893,7 +893,7 @@ class TestCLI:
     def test_cli_help(self):
         """Test CLI help command."""
         from typer.testing import CliRunner
-        from zomma_kg.cli import app
+        from vanna_kg.cli import app
 
         runner = CliRunner()
         result = runner.invoke(app, ["--help"])
@@ -907,7 +907,7 @@ class TestCLI:
     def test_cli_ingest_help(self):
         """Test ingest command help."""
         from typer.testing import CliRunner
-        from zomma_kg.cli import app
+        from vanna_kg.cli import app
 
         runner = CliRunner()
         result = runner.invoke(app, ["ingest", "--help"])
@@ -920,7 +920,7 @@ class TestCLI:
     def test_cli_query_help(self):
         """Test query command help."""
         from typer.testing import CliRunner
-        from zomma_kg.cli import app
+        from vanna_kg.cli import app
 
         runner = CliRunner()
         result = runner.invoke(app, ["query", "--help"])
@@ -932,7 +932,7 @@ class TestCLI:
     def test_cli_info_help(self):
         """Test info command help."""
         from typer.testing import CliRunner
-        from zomma_kg.cli import app
+        from vanna_kg.cli import app
 
         runner = CliRunner()
         result = runner.invoke(app, ["info", "--help"])
@@ -943,7 +943,7 @@ class TestCLI:
     def test_cli_shell_not_implemented(self):
         """Test shell command shows not implemented message."""
         from typer.testing import CliRunner
-        from zomma_kg.cli import app
+        from vanna_kg.cli import app
 
         runner = CliRunner()
 

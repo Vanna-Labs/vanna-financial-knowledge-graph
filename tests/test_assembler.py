@@ -5,11 +5,11 @@ from uuid import uuid4
 
 import pytest
 
-from zomma_kg.ingestion.assembly.assembler import Assembler
-from zomma_kg.types import EntityType
-from zomma_kg.types.chunks import Chunk, Document
-from zomma_kg.types.facts import Fact
-from zomma_kg.types.results import AssemblyInput, AssemblyResult, CanonicalEntity
+from vanna_kg.ingestion.assembly.assembler import Assembler
+from vanna_kg.types import EntityType
+from vanna_kg.types.chunks import Chunk, Document
+from vanna_kg.types.facts import Fact
+from vanna_kg.types.results import AssemblyInput, AssemblyResult, CanonicalEntity
 
 
 class TestAssemblerEntityTypeMapping:

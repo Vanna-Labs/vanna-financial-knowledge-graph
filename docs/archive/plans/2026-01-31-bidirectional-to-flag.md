@@ -13,7 +13,7 @@
 ### Task 1: Update DuckDB Query Method
 
 **Files:**
-- Modify: `zomma_kg/storage/duckdb/queries.py:366-449`
+- Modify: `vanna_kg/storage/duckdb/queries.py:366-449`
 
 **Step 1: Rename and update the query method**
 
@@ -102,13 +102,13 @@ async def get_facts_by_entities(
 
 **Step 2: Verify no syntax errors**
 
-Run: `python -c "from zomma_kg.storage.duckdb.queries import DuckDBQueries; print('OK')"`
+Run: `python -c "from vanna_kg.storage.duckdb.queries import DuckDBQueries; print('OK')"`
 Expected: `OK`
 
 **Step 3: Commit**
 
 ```bash
-git add zomma_kg/storage/duckdb/queries.py
+git add vanna_kg/storage/duckdb/queries.py
 git commit -m "feat: add bidirectional get_facts_by_entities query"
 ```
 
@@ -117,7 +117,7 @@ git commit -m "feat: add bidirectional get_facts_by_entities query"
 ### Task 2: Update Server Search Command
 
 **Files:**
-- Modify: `zomma_kg/mcp/server.py:169-290`
+- Modify: `vanna_kg/mcp/server.py:169-290`
 
 **Step 1: Update argparse to replace `-topic` with `-to`**
 
@@ -241,7 +241,7 @@ Find the help text and update:
 
 ```python
 if cmd_name == "help":
-    return """ZommaKG Commands:
+    return """VannaKG Commands:
     find -entity <names> -to <names>     Resolve names to canonical nodes
     search -entity <n> [-to <n>] [--query "action"] [--from DATE] [--to-date DATE]
                                           Find connections between nodes
@@ -262,13 +262,13 @@ Update the `kg_execute` docstring to reflect new syntax.
 
 **Step 4: Verify no syntax errors**
 
-Run: `python -c "from zomma_kg.mcp.server import cmd_search; print('OK')"`
+Run: `python -c "from vanna_kg.mcp.server import cmd_search; print('OK')"`
 Expected: `OK`
 
 **Step 5: Commit**
 
 ```bash
-git add zomma_kg/mcp/server.py
+git add vanna_kg/mcp/server.py
 git commit -m "feat: replace -topic with -to flag, bidirectional search"
 ```
 
@@ -277,7 +277,7 @@ git commit -m "feat: replace -topic with -to flag, bidirectional search"
 ### Task 3: Update find Command
 
 **Files:**
-- Modify: `zomma_kg/mcp/server.py:107-166`
+- Modify: `vanna_kg/mcp/server.py:107-166`
 
 **Step 1: Replace `-topic` with `-to` in find command**
 
@@ -351,13 +351,13 @@ async def cmd_find(args: list[str]) -> str:
 
 **Step 2: Verify no syntax errors**
 
-Run: `python -c "from zomma_kg.mcp.server import cmd_find; print('OK')"`
+Run: `python -c "from vanna_kg.mcp.server import cmd_find; print('OK')"`
 Expected: `OK`
 
 **Step 3: Commit**
 
 ```bash
-git add zomma_kg/mcp/server.py
+git add vanna_kg/mcp/server.py
 git commit -m "feat: update find command to use -to instead of -topic"
 ```
 
@@ -366,7 +366,7 @@ git commit -m "feat: update find command to use -to instead of -topic"
 ### Task 4: Update SKILL.md Documentation
 
 **Files:**
-- Modify: `zomma_kg/skills/kg-query/SKILL.md`
+- Modify: `vanna_kg/skills/kg-query/SKILL.md`
 
 **Step 1: Replace all `-topic` with `-to` throughout the document**
 
@@ -434,7 +434,7 @@ Remove the row about `-topic` vs `--query`, update to reflect new `-to` usage.
 **Step 5: Commit**
 
 ```bash
-git add zomma_kg/skills/kg-query/SKILL.md
+git add vanna_kg/skills/kg-query/SKILL.md
 git commit -m "docs: update SKILL.md for -to flag and bidirectional search"
 ```
 
@@ -450,7 +450,7 @@ If you have a test KB, run these commands manually:
 # Start a Python REPL or test script
 python -c "
 import asyncio
-from zomma_kg.mcp.server import init_kg, execute_command
+from vanna_kg.mcp.server import init_kg, execute_command
 
 async def test():
     await init_kg('./test_kb')  # or your KB path

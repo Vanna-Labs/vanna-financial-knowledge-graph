@@ -11,7 +11,7 @@ class TestTopicResolverConstruction:
 
     def test_constructor_with_defaults(self):
         """TopicResolver should accept dependencies and use defaults."""
-        from zomma_kg.ingestion.resolution.topic_resolver import TopicResolver
+        from vanna_kg.ingestion.resolution.topic_resolver import TopicResolver
 
         indices = MagicMock()
         llm = MagicMock()
@@ -32,7 +32,7 @@ class TestTopicResolverConstruction:
 
     def test_constructor_with_custom_values(self):
         """TopicResolver should accept custom configuration."""
-        from zomma_kg.ingestion.resolution.topic_resolver import TopicResolver
+        from vanna_kg.ingestion.resolution.topic_resolver import TopicResolver
 
         indices = MagicMock()
         llm = MagicMock()
@@ -68,13 +68,13 @@ class TestOntologyLoading:
         """Create a small test ontology JSON."""
         ontology = [
             {
-                "uri": "https://kg.zommalabs.com/topic/Inflation",
+                "uri": "https://kg.vannalabs.com/topic/Inflation",
                 "label": "Inflation",
                 "definition": "A general increase in prices.",
                 "synonyms": ["CPI", "Price Increases"],
             },
             {
-                "uri": "https://kg.zommalabs.com/topic/GDP",
+                "uri": "https://kg.vannalabs.com/topic/GDP",
                 "label": "GDP",
                 "definition": "Gross domestic product.",
                 "synonyms": ["Economic Output"],
@@ -86,7 +86,7 @@ class TestOntologyLoading:
 
     def test_load_ontology_entries(self, small_ontology):
         """_load_ontology_entries should parse JSON correctly."""
-        from zomma_kg.ingestion.resolution.topic_resolver import TopicResolver
+        from vanna_kg.ingestion.resolution.topic_resolver import TopicResolver
 
         resolver = TopicResolver.__new__(TopicResolver)
         entries = resolver._load_ontology_entries(small_ontology)
@@ -97,7 +97,7 @@ class TestOntologyLoading:
 
     def test_compute_ontology_hash(self, small_ontology):
         """_compute_ontology_hash should return consistent hash."""
-        from zomma_kg.ingestion.resolution.topic_resolver import TopicResolver
+        from vanna_kg.ingestion.resolution.topic_resolver import TopicResolver
 
         resolver = TopicResolver.__new__(TopicResolver)
         hash1 = resolver._compute_ontology_hash(small_ontology)
@@ -108,7 +108,7 @@ class TestOntologyLoading:
 
     def test_generate_embedding_texts(self, small_ontology):
         """_generate_embedding_texts should create label:def and synonym:def pairs."""
-        from zomma_kg.ingestion.resolution.topic_resolver import TopicResolver
+        from vanna_kg.ingestion.resolution.topic_resolver import TopicResolver
 
         resolver = TopicResolver.__new__(TopicResolver)
         entries = resolver._load_ontology_entries(small_ontology)
@@ -142,7 +142,7 @@ class TestOntologyCache:
         """Create a small test ontology JSON."""
         ontology = [
             {
-                "uri": "https://kg.zommalabs.com/topic/Inflation",
+                "uri": "https://kg.vannalabs.com/topic/Inflation",
                 "label": "Inflation",
                 "definition": "A general increase in prices.",
                 "synonyms": [],
@@ -154,7 +154,7 @@ class TestOntologyCache:
 
     def test_should_reload_no_hash_file(self, mock_indices, small_ontology_path):
         """Should reload when no hash file exists."""
-        from zomma_kg.ingestion.resolution.topic_resolver import TopicResolver
+        from vanna_kg.ingestion.resolution.topic_resolver import TopicResolver
 
         resolver = TopicResolver.__new__(TopicResolver)
         resolver.indices = mock_indices
@@ -163,7 +163,7 @@ class TestOntologyCache:
 
     def test_should_reload_hash_matches(self, mock_indices, small_ontology_path):
         """Should not reload when hash matches."""
-        from zomma_kg.ingestion.resolution.topic_resolver import TopicResolver
+        from vanna_kg.ingestion.resolution.topic_resolver import TopicResolver
 
         resolver = TopicResolver.__new__(TopicResolver)
         resolver.indices = mock_indices
@@ -177,7 +177,7 @@ class TestOntologyCache:
 
     def test_should_reload_hash_differs(self, mock_indices, small_ontology_path):
         """Should reload when hash differs."""
-        from zomma_kg.ingestion.resolution.topic_resolver import TopicResolver
+        from vanna_kg.ingestion.resolution.topic_resolver import TopicResolver
 
         resolver = TopicResolver.__new__(TopicResolver)
         resolver.indices = mock_indices
@@ -190,7 +190,7 @@ class TestOntologyCache:
 
     def test_save_ontology_hash(self, mock_indices, small_ontology_path):
         """_save_ontology_hash should persist hash to file."""
-        from zomma_kg.ingestion.resolution.topic_resolver import TopicResolver
+        from vanna_kg.ingestion.resolution.topic_resolver import TopicResolver
 
         resolver = TopicResolver.__new__(TopicResolver)
         resolver.indices = mock_indices
@@ -227,7 +227,7 @@ class TestEnsureOntologyLoaded:
         """Create test ontology file."""
         ontology = [
             {
-                "uri": "https://kg.zommalabs.com/topic/Test",
+                "uri": "https://kg.vannalabs.com/topic/Test",
                 "label": "Test Topic",
                 "definition": "A test topic.",
                 "synonyms": [],
@@ -242,7 +242,7 @@ class TestEnsureOntologyLoaded:
         self, mock_resolver_deps, test_ontology, monkeypatch
     ):
         """_ensure_ontology_loaded should load on first call."""
-        from zomma_kg.ingestion.resolution.topic_resolver import TopicResolver
+        from vanna_kg.ingestion.resolution.topic_resolver import TopicResolver
 
         indices, llm, embeddings = mock_resolver_deps
         resolver = TopicResolver(indices, llm, embeddings)
@@ -262,7 +262,7 @@ class TestEnsureOntologyLoaded:
         self, mock_resolver_deps, test_ontology, monkeypatch
     ):
         """_ensure_ontology_loaded should skip if already loaded and hash matches."""
-        from zomma_kg.ingestion.resolution.topic_resolver import TopicResolver
+        from vanna_kg.ingestion.resolution.topic_resolver import TopicResolver
 
         indices, llm, embeddings = mock_resolver_deps
         resolver = TopicResolver(indices, llm, embeddings)
@@ -281,7 +281,7 @@ class TestEnsureOntologyLoaded:
         self, mock_resolver_deps, test_ontology, monkeypatch
     ):
         """reload_ontology should reload even when hash matches."""
-        from zomma_kg.ingestion.resolution.topic_resolver import TopicResolver
+        from vanna_kg.ingestion.resolution.topic_resolver import TopicResolver
 
         indices, llm, embeddings = mock_resolver_deps
         resolver = TopicResolver(indices, llm, embeddings)
@@ -301,8 +301,8 @@ class TestTopicToText:
 
     def test_topic_to_text_format(self):
         """Text format should be 'topic: definition'."""
-        from zomma_kg.ingestion.resolution.topic_resolver import TopicResolver
-        from zomma_kg.types.topics import TopicDefinition
+        from vanna_kg.ingestion.resolution.topic_resolver import TopicResolver
+        from vanna_kg.types.topics import TopicDefinition
 
         topic = TopicDefinition(
             topic="M&A",
@@ -316,8 +316,8 @@ class TestTopicToText:
 
     def test_topic_to_text_empty_definition(self):
         """Empty definition should still produce valid text."""
-        from zomma_kg.ingestion.resolution.topic_resolver import TopicResolver
-        from zomma_kg.types.topics import TopicDefinition
+        from vanna_kg.ingestion.resolution.topic_resolver import TopicResolver
+        from vanna_kg.types.topics import TopicDefinition
 
         topic = TopicDefinition(topic="Unknown", definition="")
 
@@ -331,8 +331,8 @@ class TestBatchVerificationPrompt:
 
     def test_prompt_contains_all_topics(self):
         """Prompt should list all topics with their candidates."""
-        from zomma_kg.ingestion.resolution.topic_resolver import TopicResolver
-        from zomma_kg.types.topics import TopicDefinition
+        from vanna_kg.ingestion.resolution.topic_resolver import TopicResolver
+        from vanna_kg.types.topics import TopicDefinition
 
         resolver = TopicResolver.__new__(TopicResolver)
         resolver.high_similarity_flag = 0.85
@@ -367,8 +367,8 @@ class TestBatchVerificationPrompt:
 
     def test_prompt_flags_high_similarity(self):
         """High similarity candidates should be flagged."""
-        from zomma_kg.ingestion.resolution.topic_resolver import TopicResolver
-        from zomma_kg.types.topics import TopicDefinition
+        from vanna_kg.ingestion.resolution.topic_resolver import TopicResolver
+        from vanna_kg.types.topics import TopicDefinition
 
         resolver = TopicResolver.__new__(TopicResolver)
         resolver.high_similarity_flag = 0.85
@@ -389,8 +389,8 @@ class TestVerifyBatch:
     @pytest.mark.asyncio
     async def test_verify_batch_returns_decisions(self):
         """_verify_batch should return decisions for all topics."""
-        from zomma_kg.ingestion.resolution.topic_resolver import TopicResolver
-        from zomma_kg.types.topics import (
+        from vanna_kg.ingestion.resolution.topic_resolver import TopicResolver
+        from vanna_kg.types.topics import (
             BatchTopicMatchResponse,
             TopicDefinition,
             TopicMatchDecision,
@@ -428,8 +428,8 @@ class TestVerifyBatch:
     @pytest.mark.asyncio
     async def test_verify_batch_handles_llm_failure(self):
         """_verify_batch should return no-match decisions on LLM failure."""
-        from zomma_kg.ingestion.resolution.topic_resolver import TopicResolver
-        from zomma_kg.types.topics import TopicDefinition
+        from vanna_kg.ingestion.resolution.topic_resolver import TopicResolver
+        from vanna_kg.types.topics import TopicDefinition
 
         llm = AsyncMock()
         llm.generate_structured = AsyncMock(side_effect=Exception("LLM error"))
@@ -454,8 +454,8 @@ class TestResolve:
     @pytest.fixture
     def mock_resolver(self, tmp_path):
         """Create resolver with all mocks."""
-        from zomma_kg.ingestion.resolution.topic_resolver import TopicResolver
-        from zomma_kg.types.topics import (
+        from vanna_kg.ingestion.resolution.topic_resolver import TopicResolver
+        from vanna_kg.types.topics import (
             BatchTopicMatchResponse,
             TopicMatchDecision,
         )
@@ -490,7 +490,7 @@ class TestResolve:
     @pytest.mark.asyncio
     async def test_resolve_with_match(self, mock_resolver):
         """Matching topic should be in resolved_topics and uuid_remap."""
-        from zomma_kg.types.topics import (
+        from vanna_kg.types.topics import (
             BatchTopicMatchResponse,
             TopicDefinition,
             TopicMatchDecision,
@@ -524,7 +524,7 @@ class TestResolve:
     @pytest.mark.asyncio
     async def test_resolve_no_match_collected(self, mock_resolver):
         """Unmatched topic should be in new_topics when collect_unmatched=True."""
-        from zomma_kg.types.topics import (
+        from vanna_kg.types.topics import (
             BatchTopicMatchResponse,
             TopicDefinition,
             TopicMatchDecision,
@@ -550,7 +550,7 @@ class TestResolve:
     @pytest.mark.asyncio
     async def test_resolve_no_match_not_collected(self, mock_resolver):
         """Unmatched topic should NOT be in new_topics when collect_unmatched=False."""
-        from zomma_kg.types.topics import (
+        from vanna_kg.types.topics import (
             BatchTopicMatchResponse,
             TopicDefinition,
             TopicMatchDecision,
@@ -574,7 +574,7 @@ class TestResolve:
     @pytest.mark.asyncio
     async def test_resolve_with_decision_count_mismatch(self, mock_resolver):
         """Resolver should handle when LLM returns fewer decisions than topics."""
-        from zomma_kg.types.topics import (
+        from vanna_kg.types.topics import (
             BatchTopicMatchResponse,
             TopicDefinition,
             TopicMatchDecision,
@@ -612,7 +612,7 @@ class TestResolve:
     @pytest.mark.asyncio
     async def test_resolve_with_invalid_candidate_index(self, mock_resolver):
         """Resolver should handle when LLM returns invalid candidate index."""
-        from zomma_kg.types.topics import (
+        from vanna_kg.types.topics import (
             BatchTopicMatchResponse,
             TopicDefinition,
             TopicMatchDecision,
@@ -645,7 +645,7 @@ class TestResolve:
     @pytest.mark.asyncio
     async def test_resolve_filters_by_ontology_group_id(self, mock_resolver):
         """Resolver should filter candidates by ontology_group_id."""
-        from zomma_kg.types.topics import (
+        from vanna_kg.types.topics import (
             BatchTopicMatchResponse,
             TopicDefinition,
             TopicMatchDecision,
@@ -678,7 +678,7 @@ class TestResolve:
     @pytest.mark.asyncio
     async def test_resolve_rejects_default_group_candidates(self, mock_resolver):
         """Resolver should not resolve candidates returned from default group."""
-        from zomma_kg.types.topics import (
+        from vanna_kg.types.topics import (
             BatchTopicMatchResponse,
             TopicDefinition,
             TopicMatchDecision,
@@ -716,7 +716,7 @@ class TestResolve:
     @pytest.mark.asyncio
     async def test_resolve_deduplicates_case_and_whitespace_variants(self, mock_resolver):
         """Resolver should verify one normalized topic and map all original spellings."""
-        from zomma_kg.types.topics import (
+        from vanna_kg.types.topics import (
             BatchTopicMatchResponse,
             TopicDefinition,
             TopicMatchDecision,
@@ -769,7 +769,7 @@ class TestResolve:
     @pytest.mark.asyncio
     async def test_resolve_unmatched_deduped_topic_expands_to_all_originals(self, mock_resolver):
         """Unmatched normalized topic should return all original spellings in new_topics."""
-        from zomma_kg.types.topics import (
+        from vanna_kg.types.topics import (
             BatchTopicMatchResponse,
             TopicDefinition,
             TopicMatchDecision,
@@ -805,7 +805,7 @@ class TestOntologyFileErrors:
 
     def test_load_ontology_file_not_found(self, tmp_path):
         """_load_ontology_entries should raise informative error for missing file."""
-        from zomma_kg.ingestion.resolution.topic_resolver import TopicResolver
+        from vanna_kg.ingestion.resolution.topic_resolver import TopicResolver
 
         resolver = TopicResolver.__new__(TopicResolver)
         nonexistent_path = tmp_path / "nonexistent.json"
@@ -818,7 +818,7 @@ class TestOntologyFileErrors:
 
     def test_load_ontology_invalid_json(self, tmp_path):
         """_load_ontology_entries should raise informative error for invalid JSON."""
-        from zomma_kg.ingestion.resolution.topic_resolver import TopicResolver
+        from vanna_kg.ingestion.resolution.topic_resolver import TopicResolver
 
         resolver = TopicResolver.__new__(TopicResolver)
         invalid_file = tmp_path / "invalid.json"
@@ -835,8 +835,8 @@ class TestBuildResultValidation:
 
     def test_build_result_matches_by_topic_name(self):
         """_build_result should match decisions by topic name, not position."""
-        from zomma_kg.ingestion.resolution.topic_resolver import TopicResolver
-        from zomma_kg.types.topics import TopicDefinition, TopicMatchDecision
+        from vanna_kg.ingestion.resolution.topic_resolver import TopicResolver
+        from vanna_kg.types.topics import TopicDefinition, TopicMatchDecision
 
         resolver = TopicResolver.__new__(TopicResolver)
         resolver.collect_unmatched = True
@@ -864,8 +864,8 @@ class TestBuildResultValidation:
 
     def test_build_result_case_insensitive_matching(self):
         """_build_result should match topic names case-insensitively."""
-        from zomma_kg.ingestion.resolution.topic_resolver import TopicResolver
-        from zomma_kg.types.topics import TopicDefinition, TopicMatchDecision
+        from vanna_kg.ingestion.resolution.topic_resolver import TopicResolver
+        from vanna_kg.types.topics import TopicDefinition, TopicMatchDecision
 
         resolver = TopicResolver.__new__(TopicResolver)
         resolver.collect_unmatched = True

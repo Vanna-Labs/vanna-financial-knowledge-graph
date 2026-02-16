@@ -18,17 +18,17 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 # Only show debug for our modules
-logging.getLogger("zomma_kg").setLevel(logging.DEBUG)
+logging.getLogger("vanna_kg").setLevel(logging.DEBUG)
 logging.getLogger("httpx").setLevel(logging.WARNING)
 logging.getLogger("openai").setLevel(logging.WARNING)
 
 import lancedb
 
-from zomma_kg.config import KGConfig
-from zomma_kg.storage import ParquetBackend
-from zomma_kg.providers.embedding.openai import OpenAIEmbeddingProvider
-from zomma_kg.providers.llm.openai import OpenAILLMProvider
-from zomma_kg.query import GraphRAGPipeline
+from vanna_kg.config import KGConfig
+from vanna_kg.storage import ParquetBackend
+from vanna_kg.providers.embedding.openai import OpenAIEmbeddingProvider
+from vanna_kg.providers.llm.openai import OpenAILLMProvider
+from vanna_kg.query import GraphRAGPipeline
 
 
 async def main():
@@ -98,7 +98,7 @@ async def main():
     print("3. TESTING RESEARCHER TOPIC RESOLUTION DIRECTLY")
     print("=" * 60)
 
-    from zomma_kg.query.researcher import Researcher
+    from vanna_kg.query.researcher import Researcher
 
     storage = ParquetBackend(kb_path, config)
     await storage.initialize()

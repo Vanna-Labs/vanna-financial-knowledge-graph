@@ -2,7 +2,7 @@
 
 ## Overview
 
-A standalone script to run the full ZommaKG ingestion pipeline end-to-end, primarily for testing and validation.
+A standalone script to run the full VannaKG ingestion pipeline end-to-end, primarily for testing and validation.
 
 ## CLI Interface
 

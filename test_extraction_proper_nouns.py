@@ -9,9 +9,9 @@ import asyncio
 
 from dotenv import load_dotenv
 
-from zomma_kg.ingestion.extraction import extract_from_chunk
-from zomma_kg.providers.llm.openai import OpenAILLMProvider
-from zomma_kg.types import ChunkInput
+from vanna_kg.ingestion.extraction import extract_from_chunk
+from vanna_kg.providers.llm.openai import OpenAILLMProvider
+from vanna_kg.types import ChunkInput
 
 load_dotenv()
 

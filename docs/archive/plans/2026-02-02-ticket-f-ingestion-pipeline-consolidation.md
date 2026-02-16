@@ -26,7 +26,7 @@ differed between API vs script), which creates inconsistent runtime behavior.
 ## Target files
 
 - `scripts/build_kg.py`
-- `zomma_kg/api/knowledge_graph.py` (only if small hooks/callbacks are needed)
+- `vanna_kg/api/knowledge_graph.py` (only if small hooks/callbacks are needed)
 - `tests/test_knowledge_graph.py`
 - `tests/` (new script-wrapper test file if needed)
 
