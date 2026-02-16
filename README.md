@@ -8,6 +8,27 @@ Embedded knowledge graph library for document understanding.
 pip install vanna-kg
 ```
 
+Install directly from GitHub:
+
+```bash
+pip install "git+https://github.com/Vanna-Labs/vanna-financial-knowledge-graph.git"
+```
+
+Python package imports use underscore:
+
+```python
+import vanna_kg
+```
+
+## Environment
+
+Copy `.env.example` to `.env` and set at least:
+
+```bash
+OPENAI_API_KEY=...
+GOOGLE_API_KEY=...
+```
+
 ## Quick Start
 
 ```python
