@@ -233,8 +233,12 @@ class ParquetBackend(StorageBackend):
 
         await asyncio.to_thread(_write)
 
-    async def write_chunks(self, chunks: list[Chunk]) -> None:
-        """Write chunks in batch."""
+    async def write_chunks(
+        self,
+        chunks: list[Chunk],
+        embeddings: list[list[float]] | None = None,
+    ) -> None:
+        """Write chunks with optional embeddings."""
         if not chunks:
             return
 
@@ -254,6 +258,20 @@ class ParquetBackend(StorageBackend):
                 self._append_to_parquet("chunks", data, self._chunk_schema())
 
         await asyncio.to_thread(_write)
+
+        # Index in LanceDB if embeddings provided
+        if embeddings:
+            chunk_dicts = [
+                {
+                    "uuid": c.uuid,
+                    "content": c.content,
+                    "header_path": c.header_path,
+                    "document_uuid": c.document_uuid,
+                    "group_id": self._group_id,
+                }
+                for c in chunks
+            ]
+            await self._lancedb.add_chunks(chunk_dicts, embeddings)
 
     async def write_entities(
         self,
@@ -600,6 +618,35 @@ class ParquetBackend(StorageBackend):
             )
             for r in results
         ]
+
+    async def search_chunks(
+        self,
+        query_vector: list[float],
+        limit: int = 20,
+        threshold: float = 0.3,
+    ) -> list[tuple[Chunk, float]]:
+        """Search chunks by vector similarity."""
+        results = await self._lancedb.search_chunks(query_vector, limit, threshold)
+
+        if not results:
+            return []
+
+        chunk_uuids = [r[0]["uuid"] for r in results]
+        chunks = await self._duckdb.get_chunks(chunk_uuids)
+
+        if not chunks:
+            return []
+
+        # Preserve vector rank order from LanceDB results.
+        uuid_to_chunk = {chunk.uuid: chunk for chunk in chunks}
+        ordered: list[tuple[Chunk, float]] = []
+        for chunk_dict, score in results:
+            uuid = chunk_dict["uuid"]
+            chunk = uuid_to_chunk.get(uuid)
+            if chunk is not None:
+                ordered.append((chunk, score))
+
+        return ordered
 
     # -------------------------------------------------------------------------
     # Graph Query Operations (delegate to DuckDB)

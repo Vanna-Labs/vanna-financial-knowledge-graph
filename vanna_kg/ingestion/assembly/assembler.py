@@ -60,11 +60,14 @@ class Assembler:
         result = AssemblyResult()
 
         # Step 1: Generate all embeddings in parallel batches
-        entity_embeddings, fact_embeddings, topic_embeddings = (
-            await self._generate_embeddings(input.entities, input.facts, input.topics)
+        chunk_embeddings, entity_embeddings, fact_embeddings, topic_embeddings = (
+            await self._generate_embeddings(input.chunks, input.entities, input.facts, input.topics)
         )
 
         # Validate embedding counts match
+        self._validate_embedding_counts(
+            input.chunks, chunk_embeddings, "chunks"
+        )
         self._validate_embedding_counts(
             input.entities, entity_embeddings, "entities"
         )
@@ -84,7 +87,7 @@ class Assembler:
 
             # 2b. Chunks (reference document)
             if input.chunks:
-                await self.storage.write_chunks(input.chunks)
+                await self.storage.write_chunks(input.chunks, chunk_embeddings)
                 result.chunks_written = len(input.chunks)
 
             # 2c. Entities (no dependencies, but need embeddings for LanceDB)
@@ -135,12 +138,14 @@ class Assembler:
 
     async def _generate_embeddings(
         self,
+        chunks: list,
         entities: list[CanonicalEntity],
         facts: list,
         topics: list,
-    ) -> tuple[list[list[float]], list[list[float]], list[list[float]]]:
+    ) -> tuple[list[list[float]], list[list[float]], list[list[float]], list[list[float]]]:
         """Generate all embeddings in parallel batches."""
         # Prepare texts
+        chunk_texts = [c.content for c in chunks] if chunks else []
         entity_texts = [f"{e.name}: {e.summary}" for e in entities] if entities else []
         fact_texts = [f.content for f in facts] if facts else []
         topic_texts = (
@@ -154,12 +159,13 @@ class Assembler:
             return await self.embeddings.embed(texts)
 
         results = await asyncio.gather(
+            embed_or_empty(chunk_texts),
             embed_or_empty(entity_texts),
             embed_or_empty(fact_texts),
             embed_or_empty(topic_texts),
         )
 
-        return results[0], results[1], results[2]
+        return results[0], results[1], results[2], results[3]
 
     def _canonical_to_entity(self, canonicals: list[CanonicalEntity]) -> list[Entity]:
         """Convert CanonicalEntity to Entity for storage."""

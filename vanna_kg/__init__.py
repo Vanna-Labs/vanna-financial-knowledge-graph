@@ -46,7 +46,7 @@ def __getattr__(name: str):
         return getattr(convenience, name)
 
     # Types
-    if name in ("Chunk", "Entity", "Fact", "Topic", "Document", "QueryResult"):
+    if name in ("Chunk", "Entity", "Fact", "Topic", "Document", "QueryResult", "ChunkMatch"):
         from vanna_kg import types
         return getattr(types, name)
 
@@ -73,6 +73,7 @@ __all__ = [
     "Topic",
     "Document",
     "QueryResult",
+    "ChunkMatch",
 
     # Version
     "__version__",

@@ -93,3 +93,26 @@ async def test_chunk_append_guardrail_never_reads_existing_table(
     assert await backend.count_chunks() == 2
 
     await backend._duckdb.close()
+
+
+@pytest.mark.asyncio
+async def test_search_chunks_returns_scored_results(tmp_path: Path) -> None:
+    backend = ParquetBackend(tmp_path / "kb")
+    await backend.initialize()
+
+    await backend.write_chunks(
+        [_chunk("chunk-1", 0), _chunk("chunk-2", 1)],
+        embeddings=[[1.0, 0.0, 0.0], [0.0, 1.0, 0.0]],
+    )
+
+    results = await backend.search_chunks(
+        [1.0, 0.0, 0.0],
+        limit=2,
+        threshold=0.0,
+    )
+
+    assert len(results) == 2
+    assert results[0][0].uuid == "chunk-1"
+    assert results[0][1] >= results[1][1]
+
+    await backend.close()

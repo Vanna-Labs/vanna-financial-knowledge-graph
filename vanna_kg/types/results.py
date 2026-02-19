@@ -22,14 +22,11 @@ Query Pipeline Models:
 """
 
 from enum import Enum
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
-if TYPE_CHECKING:
-    from vanna_kg.types.chunks import Chunk, Document
-    from vanna_kg.types.facts import Fact
-    from vanna_kg.types.topics import Topic
+from vanna_kg.types.chunks import Chunk
 
 from vanna_kg.types.entities import EntityGroup, EnumeratedEntity, EntityTypeLabel
 from vanna_kg.types.facts import ExtractedFact
@@ -103,6 +100,19 @@ class SearchResult(BaseModel):
     content: str
     score: float
     metadata: dict[str, Any] = {}
+
+
+class ChunkMatch(BaseModel):
+    """
+    Result from semantic chunk search.
+
+    Attributes:
+        chunk: The matched chunk
+        score: Similarity score
+    """
+
+    chunk: Chunk
+    score: float
 
 
 # -----------------------------------------------------------------------------

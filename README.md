@@ -53,7 +53,7 @@ See `docs/DEVELOPER_GUIDE.md` for a comprehensive API and usage guide.
 - **Zero Infrastructure**: Embedded storage using DuckDB, LanceDB, and Parquet
 - **Portable Knowledge Bases**: A directory you can zip and share
 - **OpenAI-First Runtime**: OpenAI-backed ingestion and query pipeline in production
-- **Roadmap Placeholders**: `KGShell`, chunk vector search, and global chunk search are not implemented yet
+- **Roadmap Placeholders**: `KGShell` and query-time global chunk-search fallback in `query()` are not implemented yet
 - **Planned Providers**: Anthropic, Google, and alternative embedding providers are roadmap items
 
 ## License

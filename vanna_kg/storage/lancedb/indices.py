@@ -1,7 +1,7 @@
 """
 LanceDB Vector Indices
 
-Manages vector indices for entities, facts, and topics with multi-tenant support.
+Manages vector indices for entities, chunks, facts, and topics with multi-tenant support.
 """
 
 import asyncio
@@ -20,6 +20,7 @@ class LanceDBIndices:
 
     Tables:
         - entities: Entity embeddings (uuid, name, summary, group_id, vector)
+        - chunks: Chunk embeddings (uuid, content, header_path, document_uuid, group_id, vector)
         - facts: Fact embeddings (uuid, content, subject_name, object_name, group_id, vector)
         - topics: Topic embeddings (uuid, name, definition, group_id, vector)
 
@@ -175,6 +176,84 @@ class LanceDBIndices:
                         },
                         similarity,
                     ))
+            return output
+
+        return await asyncio.to_thread(_search)
+
+    # -------------------------------------------------------------------------
+    # Chunk Operations
+    # -------------------------------------------------------------------------
+
+    async def add_chunks(
+        self,
+        chunks: list[dict[str, Any]],
+        embeddings: list[list[float]],
+    ) -> None:
+        """Add chunks with embeddings to the index."""
+        if not chunks or not embeddings:
+            return
+
+        def _add() -> None:
+            db = self._get_db()
+            data = [
+                {
+                    "uuid": c["uuid"],
+                    "content": c.get("content", ""),
+                    "header_path": c.get("header_path", ""),
+                    "document_uuid": c.get("document_uuid", ""),
+                    "group_id": c.get("group_id", self.group_id),
+                    "vector": emb,
+                }
+                for c, emb in zip(chunks, embeddings)
+            ]
+
+            if self._has_table(db, "chunks"):
+                table = db.open_table("chunks")
+                table.add(data)
+            else:
+                db.create_table("chunks", data)
+
+        await asyncio.to_thread(_add)
+
+    async def search_chunks(
+        self,
+        query_vector: list[float],
+        limit: int = 20,
+        threshold: float = 0.3,
+    ) -> list[tuple[dict[str, Any], float]]:
+        """Search chunks by vector similarity within the current group_id."""
+
+        def _search() -> list[tuple[dict[str, Any], float]]:
+            db = self._get_db()
+            if not self._has_table(db, "chunks"):
+                return []
+
+            table = db.open_table("chunks")
+            results = (
+                table.search(query_vector)
+                .metric("cosine")
+                .where(f"group_id = '{self.group_id}'")
+                .limit(limit)
+                .to_arrow()
+            )
+
+            output: list[tuple[dict[str, Any], float]] = []
+            for i in range(results.num_rows):
+                distance = results.column("_distance")[i].as_py()
+                similarity = 1 - distance
+
+                if similarity >= threshold:
+                    output.append(
+                        (
+                            {
+                                "uuid": results.column("uuid")[i].as_py(),
+                                "content": results.column("content")[i].as_py(),
+                                "header_path": results.column("header_path")[i].as_py(),
+                                "document_uuid": results.column("document_uuid")[i].as_py(),
+                            },
+                            similarity,
+                        )
+                    )
             return output
 
         return await asyncio.to_thread(_search)

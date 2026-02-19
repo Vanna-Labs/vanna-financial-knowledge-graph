@@ -46,7 +46,7 @@ if TYPE_CHECKING:
     from vanna_kg.types.chunks import Chunk, Document
     from vanna_kg.types.entities import Entity
     from vanna_kg.types.facts import Fact
-    from vanna_kg.types.results import IngestResult, QueryResult, SubQuery
+    from vanna_kg.types.results import ChunkMatch, IngestResult, QueryResult, SubQuery
 
 
 class KnowledgeGraph:
@@ -963,15 +963,21 @@ class KnowledgeGraph:
         *,
         limit: int = 10,
         threshold: float = 0.3,
-    ) -> list["Chunk"]:
+    ) -> list["ChunkMatch"]:
         """Search for source chunks by semantic similarity."""
         await self._ensure_initialized()
         assert self._storage is not None
         assert self._embeddings is not None
 
-        # Note: chunks don't have embeddings in current schema
-        # This would need chunk embeddings to be added to LanceDB
-        raise NotImplementedError("Chunk search not yet implemented - requires chunk embeddings")
+        from vanna_kg.types import ChunkMatch
+
+        query_vector = await self._embeddings.embed_single(query)
+        results = await self._storage.search_chunks(
+            query_vector,
+            limit=limit,
+            threshold=threshold,
+        )
+        return [ChunkMatch(chunk=chunk, score=score) for chunk, score in results]
 
     # Sync wrappers
     def query_sync(self, question: str, **kwargs: Any) -> "QueryResult":
@@ -989,6 +995,10 @@ class KnowledgeGraph:
     def search_facts_sync(self, query: str, **kwargs: Any) -> list["Fact"]:
         """Sync wrapper for search_facts."""
         return asyncio.run(self.search_facts(query, **kwargs))
+
+    def search_chunks_sync(self, query: str, **kwargs: Any) -> list["ChunkMatch"]:
+        """Sync wrapper for search_chunks."""
+        return asyncio.run(self.search_chunks(query, **kwargs))
 
     # === Data Access ===
 

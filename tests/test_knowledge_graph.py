@@ -379,6 +379,89 @@ class TestKnowledgeGraphQuery:
 
                 await kg.close()
 
+    @pytest.mark.asyncio
+    async def test_search_chunks_returns_chunk_matches(self):
+        """Test search_chunks returns scored chunk matches."""
+        from vanna_kg.types.chunks import Chunk
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            kg = KnowledgeGraph(tmpdir)
+
+            mock_storage = AsyncMock()
+            mock_storage.initialize = AsyncMock()
+            mock_storage.close = AsyncMock()
+            mock_storage.search_chunks = AsyncMock(return_value=[
+                (
+                    Chunk(
+                        uuid="chunk-1",
+                        content="Apple reported stronger iPhone demand.",
+                        header_path="Earnings",
+                        position=0,
+                        document_uuid="doc-1",
+                    ),
+                    0.91,
+                )
+            ])
+
+            mock_embeddings = MagicMock()
+            mock_embeddings.embed_single = AsyncMock(return_value=[0.1] * 3072)
+
+            with patch(
+                "vanna_kg.storage.parquet.backend.ParquetBackend", return_value=mock_storage
+            ), patch(
+                "vanna_kg.providers.llm.openai.OpenAILLMProvider", return_value=MagicMock()
+            ), patch(
+                "vanna_kg.providers.embedding.openai.OpenAIEmbeddingProvider",
+                return_value=mock_embeddings,
+            ):
+                matches = await kg.search_chunks("iphone demand", limit=5, threshold=0.4)
+
+            assert len(matches) == 1
+            assert matches[0].chunk.uuid == "chunk-1"
+            assert matches[0].score == 0.91
+            mock_embeddings.embed_single.assert_awaited_once_with("iphone demand")
+            mock_storage.search_chunks.assert_awaited_once_with([0.1] * 3072, limit=5, threshold=0.4)
+
+    def test_search_chunks_sync_wrapper(self):
+        """Test sync wrapper for search_chunks."""
+        from vanna_kg.types.chunks import Chunk
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            kg = KnowledgeGraph(tmpdir)
+
+            mock_storage = AsyncMock()
+            mock_storage.initialize = AsyncMock()
+            mock_storage.close = AsyncMock()
+            mock_storage.search_chunks = AsyncMock(return_value=[
+                (
+                    Chunk(
+                        uuid="chunk-sync",
+                        content="Labor market remained tight.",
+                        header_path="Labor",
+                        position=0,
+                        document_uuid="doc-1",
+                    ),
+                    0.83,
+                )
+            ])
+
+            mock_embeddings = MagicMock()
+            mock_embeddings.embed_single = AsyncMock(return_value=[0.2] * 3072)
+
+            with patch(
+                "vanna_kg.storage.parquet.backend.ParquetBackend", return_value=mock_storage
+            ), patch(
+                "vanna_kg.providers.llm.openai.OpenAILLMProvider", return_value=MagicMock()
+            ), patch(
+                "vanna_kg.providers.embedding.openai.OpenAIEmbeddingProvider",
+                return_value=mock_embeddings,
+            ):
+                matches = kg.search_chunks_sync("labor")
+
+            assert len(matches) == 1
+            assert matches[0].chunk.uuid == "chunk-sync"
+            assert matches[0].score == 0.83
+
 
 class TestKnowledgeGraphIngestionSchemaAlignment:
     """Tests for ingestion model construction field alignment."""

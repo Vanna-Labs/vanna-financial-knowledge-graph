@@ -72,8 +72,12 @@ class StorageBackend(ABC):
         ...
 
     @abstractmethod
-    async def write_chunks(self, chunks: list["Chunk"]) -> None:
-        """Write chunks in batch."""
+    async def write_chunks(
+        self,
+        chunks: list["Chunk"],
+        embeddings: list[list[float]] | None = None,
+    ) -> None:
+        """Write chunks in batch with optional embeddings for vector search."""
         ...
 
     @abstractmethod
@@ -188,6 +192,16 @@ class StorageBackend(ABC):
         threshold: float = 0.3,
     ) -> list[tuple["Topic", float]]:
         """Search topics by vector similarity. Returns (topic, score) tuples."""
+        ...
+
+    @abstractmethod
+    async def search_chunks(
+        self,
+        query_vector: list[float],
+        limit: int = 20,
+        threshold: float = 0.3,
+    ) -> list[tuple["Chunk", float]]:
+        """Search chunks by vector similarity. Returns (chunk, score) tuples."""
         ...
 
     # -------------------------------------------------------------------------

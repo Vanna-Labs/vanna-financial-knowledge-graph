@@ -430,6 +430,7 @@ class TestAssemblerIntegration:
         # Mock embeddings to return correct number for each call
         mock_embeddings.embed = AsyncMock(
             side_effect=[
+                [[0.05] * 3072],  # chunk embeddings
                 [[0.1] * 3072],  # entity embeddings
                 [[0.2] * 3072],  # fact embeddings
             ]
@@ -450,6 +451,10 @@ class TestAssemblerIntegration:
         mock_storage.write_entities.assert_called_once()
         mock_storage.write_facts.assert_called_once()
         mock_storage.write_relationships.assert_called_once()
+
+        write_chunks_args = mock_storage.write_chunks.await_args.args
+        assert write_chunks_args[0] == [chunk]
+        assert len(write_chunks_args[1]) == 1
 
     @pytest.mark.asyncio
     async def test_assemble_batches_embeddings(self, mock_storage, mock_embeddings):
@@ -489,7 +494,7 @@ class TestAssemblerIntegration:
     async def test_assemble_no_embed_call_for_empty_lists(
         self, mock_storage, mock_embeddings
     ):
-        """Empty entity/fact/topic lists don't trigger embed calls."""
+        """Only chunk embeddings are generated when entities/facts/topics are empty."""
         doc = Document(uuid=str(uuid4()), name="test.pdf", file_type="pdf")
         chunk = Chunk(
             uuid=str(uuid4()),
@@ -510,8 +515,7 @@ class TestAssemblerIntegration:
         assembler = Assembler(mock_storage, mock_embeddings)
         await assembler.assemble(input)
 
-        # embed should not be called for empty lists
-        mock_embeddings.embed.assert_not_called()
+        mock_embeddings.embed.assert_called_once_with([chunk.content])
 
     @pytest.mark.asyncio
     async def test_assemble_embedding_count_mismatch_raises(

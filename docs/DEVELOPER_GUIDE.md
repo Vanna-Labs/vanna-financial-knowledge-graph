@@ -8,7 +8,7 @@ Developers integrating VannaKG into applications, scripts, or pipelines.
 
 **Status Notes**
 - `KGShell` is a placeholder and not implemented.
-- `KnowledgeGraph.search_chunks` is not implemented (requires chunk embeddings).
+- `KnowledgeGraph.search_chunks` is implemented as explicit global semantic chunk retrieval.
 - Only the OpenAI LLM + embedding providers are implemented; Anthropic/Google/Voyage are stubs.
 - PDF ingestion requires Google Gemini via `google-genai`.
 
