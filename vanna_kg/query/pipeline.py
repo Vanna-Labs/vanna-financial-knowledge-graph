@@ -30,10 +30,10 @@ from vanna_kg.query.researcher import Researcher
 from vanna_kg.query.synthesizer import Synthesizer
 from vanna_kg.query.types import (
     PipelineResult,
-    StructuredContext,
     SubAnswer,
 )
 from vanna_kg.types.results import QueryDecomposition, QuestionType, SubQuery
+from vanna_kg.utils.cost_telemetry import telemetry_stage
 
 if TYPE_CHECKING:
     from vanna_kg.config.settings import KGConfig
@@ -158,7 +158,8 @@ class GraphRAGPipeline:
         """
         start = time.perf_counter_ns()
 
-        decomposition = await self.decomposer.decompose(question)
+        with telemetry_stage("decomposition"):
+            decomposition = await self.decomposer.decompose(question)
 
         elapsed_ms = (time.perf_counter_ns() - start) // 1_000_000
         logger.info(
@@ -189,7 +190,8 @@ class GraphRAGPipeline:
         self.researcher.clear_cache()
 
         # Pre-compute query embedding for the main question
-        question_embedding = await self.embeddings.embed_single(question)
+        with telemetry_stage("research_resolution"):
+            question_embedding = await self.embeddings.embed_single(question)
 
         # Research each sub-query in parallel (with semaphore)
         async def research_with_semaphore(sub_query: SubQuery) -> SubAnswer:
@@ -247,21 +249,22 @@ class GraphRAGPipeline:
             SubAnswer with synthesized response
         """
         # Research: resolve hints and retrieve context
-        (
-            resolved_entities,
-            resolved_topics,
-            entity_chunks,
-            neighbor_chunks,
-            topic_chunks,
-            global_chunks,
-            facts,
-            research_timing,
-        ) = await self.researcher.research(
-            sub_query,
-            query_embedding=query_embedding,
-            enable_expansion=enable_expansion,
-            enable_global_search=self._enable_global_search,
-        )
+        with telemetry_stage("research_resolution"):
+            (
+                resolved_entities,
+                resolved_topics,
+                entity_chunks,
+                neighbor_chunks,
+                topic_chunks,
+                global_chunks,
+                facts,
+                research_timing,
+            ) = await self.researcher.research(
+                sub_query,
+                query_embedding=query_embedding,
+                enable_expansion=enable_expansion,
+                enable_global_search=self._enable_global_search,
+            )
 
         # Build structured context
         context = self.context_builder.build(
@@ -275,7 +278,8 @@ class GraphRAGPipeline:
         )
 
         # Synthesize sub-answer
-        sub_answer = await self.synthesizer.synthesize_sub_answer(sub_query, context)
+        with telemetry_stage("synthesis_sub"):
+            sub_answer = await self.synthesizer.synthesize_sub_answer(sub_query, context)
 
         # Add timing info
         sub_answer.timing = research_timing
@@ -296,9 +300,10 @@ class GraphRAGPipeline:
         """
         start = time.perf_counter_ns()
 
-        answer, confidence = await self.synthesizer.synthesize_final_answer(
-            question, sub_answers, question_type
-        )
+        with telemetry_stage("synthesis_final"):
+            answer, confidence = await self.synthesizer.synthesize_final_answer(
+                question, sub_answers, question_type
+            )
 
         elapsed_ms = (time.perf_counter_ns() - start) // 1_000_000
         logger.info(f"Synthesis: confidence={confidence:.2f}, {elapsed_ms}ms")

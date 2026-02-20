@@ -31,6 +31,7 @@ from vanna_kg.types.results import (
     MergeRecord,
 )
 from vanna_kg.utils.clustering import union_find_components
+from vanna_kg.utils.embedding_text import format_canonical_entity_text
 
 if TYPE_CHECKING:
     from vanna_kg.providers.base import EmbeddingProvider, LLMProvider
@@ -449,6 +450,7 @@ async def deduplicate_entities(
             canonical_entities=[],
             index_to_canonical={},
             merge_history=[],
+            canonical_entity_embeddings=[],
         )
 
     n = len(entities)
@@ -630,8 +632,15 @@ async def deduplicate_entities(
                 final_summary=summary,
             ))
 
+    canonical_texts = [
+        format_canonical_entity_text(entity.name, entity.summary)
+        for entity in canonical_entities
+    ]
+    canonical_entity_embeddings = await embeddings.embed(canonical_texts)
+
     return EntityDeduplicationOutput(
         canonical_entities=canonical_entities,
         index_to_canonical=index_to_canonical,
         merge_history=merge_history,
+        canonical_entity_embeddings=canonical_entity_embeddings,
     )

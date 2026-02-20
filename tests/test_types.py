@@ -88,10 +88,12 @@ class TestEntityDeduplicationOutput:
             ],
             index_to_canonical={0: 0, 1: 0},
             merge_history=[],
+            canonical_entity_embeddings=[[0.1, 0.2, 0.3]],
         )
         assert len(output.canonical_entities) == 1
         assert output.index_to_canonical[0] == 0
         assert output.index_to_canonical[1] == 0
+        assert output.canonical_entity_embeddings == [[0.1, 0.2, 0.3]]
 
     def test_dedup_output_empty(self):
         """EntityDeduplicationOutput accepts empty lists."""
@@ -101,6 +103,7 @@ class TestEntityDeduplicationOutput:
             merge_history=[],
         )
         assert len(output.canonical_entities) == 0
+        assert output.canonical_entity_embeddings == []
 
 
 class TestEntityRegistryMatch:

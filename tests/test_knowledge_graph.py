@@ -380,6 +380,63 @@ class TestKnowledgeGraphQuery:
                 await kg.close()
 
     @pytest.mark.asyncio
+    async def test_query_cost_debug_attaches_breakdown(self):
+        """Query should include cost_debug report when enabled."""
+        from vanna_kg.types.results import CostUsageRecord
+        from vanna_kg.utils.cost_telemetry import record_usage
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            kg = KnowledgeGraph(tmpdir)
+
+            mock_storage = AsyncMock()
+            mock_storage.initialize = AsyncMock()
+            mock_storage.close = AsyncMock()
+
+            async def query_with_usage(*args, **kwargs):
+                record_usage(
+                    CostUsageRecord(
+                        provider="openai",
+                        model="gpt-5-mini",
+                        operation="generate_structured",
+                        stage="decomposition",
+                        input_tokens=120,
+                        output_tokens=30,
+                        total_tokens=150,
+                        estimated_cost_usd=0.001,
+                        latency_ms=25,
+                        estimated=False,
+                    )
+                )
+                return MagicMock(
+                    answer="Test answer",
+                    confidence=0.9,
+                    sources=[],
+                    sub_answers=[],
+                    question_type=None,
+                    timing={"total": 100},
+                )
+
+            mock_pipeline = AsyncMock()
+            mock_pipeline.query = AsyncMock(side_effect=query_with_usage)
+
+            with patch(
+                "vanna_kg.storage.parquet.backend.ParquetBackend", return_value=mock_storage
+            ), patch(
+                "vanna_kg.providers.llm.openai.OpenAILLMProvider", return_value=MagicMock()
+            ), patch(
+                "vanna_kg.providers.embedding.openai.OpenAIEmbeddingProvider",
+                return_value=MagicMock(),
+            ), patch("vanna_kg.query.GraphRAGPipeline", return_value=mock_pipeline):
+                result = await kg.query("What is the answer?", cost_debug=True)
+
+            assert result.cost_debug is not None
+            assert result.cost_debug.breakdown.total_calls == 1
+            assert result.cost_debug.breakdown.total_tokens == 150
+            assert result.cost_debug.breakdown.by_stage[0].stage == "decomposition"
+
+            await kg.close()
+
+    @pytest.mark.asyncio
     async def test_search_chunks_returns_chunk_matches(self):
         """Test search_chunks returns scored chunk matches."""
         from vanna_kg.types.chunks import Chunk
@@ -553,6 +610,10 @@ class TestKnowledgeGraphIngestionSchemaAlignment:
                 canonical_entities=canonical_entities,
                 index_to_canonical={0: 0, 1: 1},
                 merge_history=[],
+                canonical_entity_embeddings=[
+                    [0.11] * 3072,
+                    [0.22] * 3072,
+                ],
             )
             entity_resolution = EntityResolutionResult(
                 new_entities=canonical_entities,
@@ -654,6 +715,11 @@ class TestKnowledgeGraphIngestionSchemaAlignment:
             pdf_topic_definitions = mock_topic_resolver_pdf.resolve.await_args.args[0]
             assert [td.topic for td in markdown_topic_definitions] == [td.topic for td in pdf_topic_definitions]
 
+            markdown_registry_call = mock_entity_registry_markdown.resolve.await_args
+            pdf_registry_call = mock_entity_registry_pdf.resolve.await_args
+            assert markdown_registry_call.kwargs["embeddings"] == dedup_result.canonical_entity_embeddings
+            assert pdf_registry_call.kwargs["embeddings"] == dedup_result.canonical_entity_embeddings
+
             markdown_assembly_input = mock_assembler_markdown.assemble.await_args.args[0]
             pdf_assembly_input = mock_assembler_pdf.assemble.await_args.args[0]
 
@@ -670,6 +736,8 @@ class TestKnowledgeGraphIngestionSchemaAlignment:
             assert [e.name for e in markdown_assembly_input.entities] == [e.name for e in pdf_assembly_input.entities]
             assert [t.uuid for t in markdown_assembly_input.topics] == [t.uuid for t in pdf_assembly_input.topics]
             assert [t.name for t in markdown_assembly_input.topics] == [t.name for t in pdf_assembly_input.topics]
+            assert markdown_assembly_input.entity_embeddings == dedup_result.canonical_entity_embeddings
+            assert pdf_assembly_input.entity_embeddings == dedup_result.canonical_entity_embeddings
 
             assert len(markdown_assembly_input.facts) == len(pdf_assembly_input.facts) == 1
             markdown_fact = markdown_assembly_input.facts[0]
@@ -782,6 +850,10 @@ class TestKnowledgeGraphIngestionSchemaAlignment:
                 canonical_entities=canonical_entities,
                 index_to_canonical={0: 0, 1: 1},
                 merge_history=[],
+                canonical_entity_embeddings=[
+                    [0.11] * 3072,
+                    [0.22] * 3072,
+                ],
             )
             entity_resolution = EntityResolutionResult(
                 new_entities=canonical_entities,
@@ -833,11 +905,15 @@ class TestKnowledgeGraphIngestionSchemaAlignment:
 
             topic_definitions = mock_topic_resolver.resolve.await_args.args[0]
             assert topic_definitions[0].topic == "M&A"
+            assert mock_entity_registry.resolve.await_args.kwargs["embeddings"] == (
+                dedup_result.canonical_entity_embeddings
+            )
 
             assembly_input = mock_assembler.assemble.await_args.args[0]
             assert assembly_input.document.name == "doc.md"
             assert assembly_input.document.document_date == "2014-05-28"
             assert assembly_input.chunks[0].document_uuid == assembly_input.document.uuid
+            assert assembly_input.entity_embeddings == dedup_result.canonical_entity_embeddings
 
             fact = assembly_input.facts[0]
             assert fact.relationship_type == "acquired"
@@ -846,6 +922,86 @@ class TestKnowledgeGraphIngestionSchemaAlignment:
             assert fact.object_type == "entity"
 
             assert assembly_input.topics[0].uuid == "topic-ma"
+            assert result.cost_debug is None
+
+    @pytest.mark.asyncio
+    async def test_ingest_markdown_cost_debug_attaches_report(self):
+        """Ingest should include cost_debug report when enabled."""
+        from vanna_kg.types import (
+            AssemblyResult,
+            ChunkInput,
+            EntityDeduplicationOutput,
+            EntityResolutionResult,
+        )
+        from vanna_kg.types.topics import TopicResolutionResult
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            kb_path = Path(tmpdir)
+            md_path = kb_path / "doc.md"
+            md_path.write_text("# Title\n\nAlpha", encoding="utf-8")
+
+            kg = KnowledgeGraph(kb_path)
+            kg._initialized = True
+            kg._storage = MagicMock()
+            kg._llm = MagicMock()
+            kg._embeddings = MagicMock()
+
+            chunk_inputs = [
+                ChunkInput(doc_id="doc-id", content="Alpha", header_path="Title", position=0),
+            ]
+            dedup_result = EntityDeduplicationOutput(
+                canonical_entities=[],
+                index_to_canonical={},
+                merge_history=[],
+            )
+            entity_resolution = EntityResolutionResult(
+                new_entities=[],
+                uuid_remap={},
+                summary_updates={},
+            )
+            topic_resolution = TopicResolutionResult(
+                resolved_topics=[],
+                uuid_remap={},
+                new_topics=[],
+            )
+
+            mock_entity_registry = MagicMock()
+            mock_entity_registry.resolve = AsyncMock(return_value=entity_resolution)
+            mock_topic_resolver = MagicMock()
+            mock_topic_resolver.resolve = AsyncMock(return_value=topic_resolution)
+            mock_assembler = MagicMock()
+            mock_assembler.assemble = AsyncMock(
+                return_value=AssemblyResult(
+                    document_written=True,
+                    chunks_written=1,
+                    entities_written=0,
+                    facts_written=0,
+                    topics_written=0,
+                    relationships_written=0,
+                )
+            )
+
+            with patch(
+                "vanna_kg.ingestion.chunking.chunk_markdown", return_value=chunk_inputs
+            ), patch(
+                "vanna_kg.ingestion.extraction.extract_from_chunks", AsyncMock(return_value=[])
+            ), patch(
+                "vanna_kg.ingestion.resolution.deduplicate_entities",
+                AsyncMock(return_value=dedup_result),
+            ), patch(
+                "vanna_kg.ingestion.resolution.EntityRegistry", return_value=mock_entity_registry
+            ), patch(
+                "vanna_kg.ingestion.resolution.TopicResolver", return_value=mock_topic_resolver
+            ), patch(
+                "vanna_kg.ingestion.assembly.Assembler", return_value=mock_assembler
+            ), patch.object(
+                KnowledgeGraph, "_create_ontology_index", AsyncMock(return_value=MagicMock())
+            ):
+                result = await kg.ingest_markdown(md_path, cost_debug=True)
+
+            assert result.cost_debug is not None
+            assert result.cost_debug.enabled is True
+            assert result.cost_debug.breakdown.total_calls == 0
 
     @pytest.mark.asyncio
     async def test_ingest_markdown_max_chunks_and_progress_callback(self):

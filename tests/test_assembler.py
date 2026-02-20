@@ -518,6 +518,49 @@ class TestAssemblerIntegration:
         mock_embeddings.embed.assert_called_once_with([chunk.content])
 
     @pytest.mark.asyncio
+    async def test_assemble_uses_precomputed_entity_embeddings(
+        self, mock_storage, mock_embeddings
+    ):
+        """Provided entity embeddings should bypass entity embedding generation."""
+        doc = Document(uuid=str(uuid4()), name="test.pdf", file_type="pdf")
+        chunk = Chunk(
+            uuid=str(uuid4()),
+            content="Chunk content",
+            header_path="# Test",
+            position=0,
+            document_uuid=doc.uuid,
+        )
+        entities = [
+            CanonicalEntity(
+                uuid=str(uuid4()),
+                name="Entity A",
+                entity_type="Company",
+                summary="Entity summary.",
+                source_indices=[0],
+            )
+        ]
+        precomputed_entity_embeddings = [[0.42] * 3072]
+
+        input = AssemblyInput(
+            document=doc,
+            chunks=[chunk],
+            entities=entities,
+            facts=[],
+            topics=[],
+            entity_embeddings=precomputed_entity_embeddings,
+        )
+
+        # Only chunks should be embedded in this case.
+        mock_embeddings.embed = AsyncMock(return_value=[[0.1] * 3072])
+
+        assembler = Assembler(mock_storage, mock_embeddings)
+        await assembler.assemble(input)
+
+        mock_embeddings.embed.assert_called_once_with([chunk.content])
+        write_entities_args = mock_storage.write_entities.await_args.args
+        assert write_entities_args[1] == precomputed_entity_embeddings
+
+    @pytest.mark.asyncio
     async def test_assemble_embedding_count_mismatch_raises(
         self, mock_storage, mock_embeddings
     ):

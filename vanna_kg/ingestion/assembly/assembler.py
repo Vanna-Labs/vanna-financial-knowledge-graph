@@ -17,11 +17,13 @@ import logging
 from uuid import uuid4
 
 from vanna_kg.providers.base import EmbeddingProvider
-
-logger = logging.getLogger(__name__)
 from vanna_kg.storage.base import StorageBackend
 from vanna_kg.types import Entity, EntityType
 from vanna_kg.types.results import AssemblyInput, AssemblyResult, CanonicalEntity
+from vanna_kg.utils.cost_telemetry import telemetry_stage
+from vanna_kg.utils.embedding_text import format_canonical_entity_text
+
+logger = logging.getLogger(__name__)
 
 
 class Assembler:
@@ -61,7 +63,13 @@ class Assembler:
 
         # Step 1: Generate all embeddings in parallel batches
         chunk_embeddings, entity_embeddings, fact_embeddings, topic_embeddings = (
-            await self._generate_embeddings(input.chunks, input.entities, input.facts, input.topics)
+            await self._generate_embeddings(
+                input.chunks,
+                input.entities,
+                input.facts,
+                input.topics,
+                entity_embeddings_override=input.entity_embeddings,
+            )
         )
 
         # Validate embedding counts match
@@ -142,11 +150,17 @@ class Assembler:
         entities: list[CanonicalEntity],
         facts: list,
         topics: list,
+        *,
+        entity_embeddings_override: list[list[float]] | None = None,
     ) -> tuple[list[list[float]], list[list[float]], list[list[float]], list[list[float]]]:
         """Generate all embeddings in parallel batches."""
         # Prepare texts
         chunk_texts = [c.content for c in chunks] if chunks else []
-        entity_texts = [f"{e.name}: {e.summary}" for e in entities] if entities else []
+        entity_texts = (
+            [format_canonical_entity_text(e.name, e.summary) for e in entities]
+            if entities and entity_embeddings_override is None
+            else []
+        )
         fact_texts = [f.content for f in facts] if facts else []
         topic_texts = (
             [f"{t.name}: {t.definition or ''}" for t in topics] if topics else []
@@ -158,14 +172,20 @@ class Assembler:
                 return []
             return await self.embeddings.embed(texts)
 
-        results = await asyncio.gather(
-            embed_or_empty(chunk_texts),
-            embed_or_empty(entity_texts),
-            embed_or_empty(fact_texts),
-            embed_or_empty(topic_texts),
-        )
+        with telemetry_stage("assembly_embeddings"):
+            results = await asyncio.gather(
+                embed_or_empty(chunk_texts),
+                embed_or_empty(entity_texts),
+                embed_or_empty(fact_texts),
+                embed_or_empty(topic_texts),
+            )
 
-        return results[0], results[1], results[2], results[3]
+        entity_embeddings = (
+            entity_embeddings_override
+            if entity_embeddings_override is not None
+            else results[1]
+        )
+        return results[0], entity_embeddings, results[2], results[3]
 
     def _canonical_to_entity(self, canonicals: list[CanonicalEntity]) -> list[Entity]:
         """Convert CanonicalEntity to Entity for storage."""

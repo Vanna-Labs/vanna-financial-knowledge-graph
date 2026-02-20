@@ -49,6 +49,9 @@ from vanna_kg.types.results import (
     CanonicalEntity,
     ChainOfThoughtResult,
     ChunkMatch,
+    CostBreakdown,
+    CostDebugReport,
+    CostUsageRecord,
     CritiqueResult,
     DateExtraction,
     EntityDedupeResult,
@@ -63,6 +66,7 @@ from vanna_kg.types.results import (
     QueryResult,
     QuestionType,
     SearchResult,
+    StageCostBreakdown,
     SubQuery,
 )
 from vanna_kg.types.topics import BatchTopicDefinitions, Topic, TopicDefinition, TopicResolution
@@ -92,6 +96,10 @@ __all__ = [
     "IngestResult",
     "SearchResult",
     "ChunkMatch",
+    "CostUsageRecord",
+    "StageCostBreakdown",
+    "CostBreakdown",
+    "CostDebugReport",
     "ExtractionResult",
     "CritiqueResult",
     "ChainOfThoughtResult",

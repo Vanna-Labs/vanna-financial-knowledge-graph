@@ -166,6 +166,11 @@ class KGConfig:
     query_topic_llm_verification: bool = True
     """Whether to use LLM to verify topic matches (False = use top-k directly)"""
 
+    # === Cost Telemetry Configuration ===
+
+    cost_debug_warn_threshold_usd: float | None = None
+    """Optional warning threshold for per-request estimated cost in cost_debug mode"""
+
     # === Storage Configuration ===
 
     parquet_compression: str = "zstd"
@@ -212,6 +217,8 @@ class KGConfig:
             self.extraction_concurrency = int(concurrency)
         if concurrency := os.getenv("VANNA_REGISTRY_CONCURRENCY"):
             self.registry_concurrency = int(concurrency)
+        if threshold := os.getenv("VANNA_COST_DEBUG_WARN_THRESHOLD_USD"):
+            self.cost_debug_warn_threshold_usd = float(threshold)
 
     @classmethod
     def from_file(cls, path: str | Path) -> "KGConfig":
@@ -259,6 +266,7 @@ class KGConfig:
             "api_keys": "",  # api_keys.openai -> openai_api_key
             "processing": "",
             "query": "query_",
+            "cost_telemetry": "cost_debug_",
             "storage": "",
         }
 
@@ -297,7 +305,7 @@ class KGConfig:
         path.parent.mkdir(parents=True, exist_ok=True)
 
         # Organize into sections
-        sections: dict[str, dict[str, str | int | float | bool]] = {
+        sections: dict[str, dict[str, str | int | float | bool | None]] = {
             "llm": {
                 "provider": self.llm_provider,
                 "model": self.llm_model,
@@ -332,6 +340,10 @@ class KGConfig:
                 "max_low_relevance_chunks": self.query_max_low_relevance_chunks,
                 "global_search_limit": self.query_global_search_limit,
                 "research_concurrency": self.query_research_concurrency,
+                "topic_llm_verification": self.query_topic_llm_verification,
+            },
+            "cost_telemetry": {
+                "warn_threshold_usd": self.cost_debug_warn_threshold_usd,
             },
             "storage": {
                 "parquet_compression": self.parquet_compression,

@@ -29,16 +29,66 @@ Example:
 
 from __future__ import annotations
 
+import time
 from collections.abc import AsyncIterator
 from typing import TYPE_CHECKING, Any, TypeVar
 
+from vanna_kg.config.pricing import estimate_llm_cost_usd
 from vanna_kg.providers.base import LLMProvider
+from vanna_kg.types.results import CostUsageRecord
+from vanna_kg.utils.cost_telemetry import current_stage, record_usage
+from vanna_kg.utils.token_count import count_chat_tokens, count_text_tokens
 
 if TYPE_CHECKING:
     from langchain_openai import ChatOpenAI
     from pydantic import BaseModel
 
 T = TypeVar("T", bound="BaseModel")
+
+
+def _as_int(value: Any) -> int | None:
+    """Best-effort int coercion."""
+    if value is None:
+        return None
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def _extract_token_usage(response: Any) -> tuple[int | None, int | None, int | None]:
+    """
+    Extract token usage from LangChain response metadata.
+
+    Returns:
+        (input_tokens, output_tokens, total_tokens)
+    """
+    if response is None:
+        return None, None, None
+
+    usage = getattr(response, "usage_metadata", None)
+    if isinstance(usage, dict):
+        input_tokens = _as_int(usage.get("input_tokens") or usage.get("prompt_tokens"))
+        output_tokens = _as_int(usage.get("output_tokens") or usage.get("completion_tokens"))
+        total_tokens = _as_int(usage.get("total_tokens"))
+        if any(v is not None for v in (input_tokens, output_tokens, total_tokens)):
+            return input_tokens, output_tokens, total_tokens
+
+    response_metadata = getattr(response, "response_metadata", None)
+    if isinstance(response_metadata, dict):
+        token_usage = response_metadata.get("token_usage") or response_metadata.get("usage")
+        if isinstance(token_usage, dict):
+            input_tokens = _as_int(
+                token_usage.get("input_tokens") or token_usage.get("prompt_tokens")
+            )
+            output_tokens = _as_int(
+                token_usage.get("output_tokens") or token_usage.get("completion_tokens")
+            )
+            total_tokens = _as_int(token_usage.get("total_tokens"))
+            if any(v is not None for v in (input_tokens, output_tokens, total_tokens)):
+                return input_tokens, output_tokens, total_tokens
+
+    return None, None, None
 
 
 def _get_chat_openai(
@@ -136,6 +186,8 @@ class OpenAILLMProvider(LLMProvider):
         """
         from langchain_core.messages import BaseMessage, HumanMessage, SystemMessage
 
+        start = time.perf_counter_ns()
+
         base_client = _get_chat_openai(
             api_key=self._api_key,
             model=self._model,
@@ -149,7 +201,52 @@ class OpenAILLMProvider(LLMProvider):
         messages.append(HumanMessage(content=prompt))
 
         response = await client.ainvoke(messages)
-        return str(response.content)
+        output_text = str(response.content)
+
+        input_tokens, output_tokens, total_tokens = _extract_token_usage(response)
+        estimated = False
+
+        if input_tokens is None:
+            chat_messages = [prompt]
+            if system:
+                chat_messages.insert(0, system)
+            input_tokens = count_chat_tokens(chat_messages, self._model)
+            estimated = True
+
+        if output_tokens is None:
+            output_tokens = count_text_tokens(output_text, self._model)
+            estimated = True
+
+        if total_tokens is None:
+            total_tokens = input_tokens + output_tokens
+
+        estimated_cost, pricing_found = estimate_llm_cost_usd(
+            self._model,
+            input_tokens=input_tokens,
+            output_tokens=output_tokens,
+        )
+        elapsed_ms = (time.perf_counter_ns() - start) // 1_000_000
+
+        record_usage(
+            CostUsageRecord(
+                provider="openai",
+                model=self._model,
+                operation="generate",
+                stage=current_stage(),
+                input_tokens=input_tokens,
+                output_tokens=output_tokens,
+                total_tokens=total_tokens,
+                estimated_cost_usd=estimated_cost,
+                latency_ms=int(elapsed_ms),
+                estimated=estimated,
+                metadata={
+                    "temperature": temperature,
+                    "max_tokens": max_tokens,
+                    "pricing_found": pricing_found,
+                },
+            )
+        )
+        return output_text
 
     async def generate_structured(
         self,
@@ -174,21 +271,81 @@ class OpenAILLMProvider(LLMProvider):
         """
         from langchain_core.messages import BaseMessage, HumanMessage, SystemMessage
 
+        start = time.perf_counter_ns()
+
         client = _get_chat_openai(
             api_key=self._api_key,
             model=self._model,
             temperature=0.0,  # Deterministic for structured output
         )
 
-        # Use LangChain's structured output feature
-        structured_client = client.with_structured_output(schema)
-
         messages: list[BaseMessage] = []
         if system:
             messages.append(SystemMessage(content=system))
         messages.append(HumanMessage(content=prompt))
 
-        result = await structured_client.ainvoke(messages)
+        raw_response: Any = None
+        try:
+            # include_raw lets us read usage metadata when available.
+            structured_client = client.with_structured_output(schema, include_raw=True)
+            result_obj = await structured_client.ainvoke(messages)
+            if isinstance(result_obj, dict) and "parsed" in result_obj:
+                result = result_obj["parsed"]
+                raw_response = result_obj.get("raw")
+            else:
+                result = result_obj
+        except TypeError:
+            structured_client = client.with_structured_output(schema)
+            result = await structured_client.ainvoke(messages)
+
+        output_text = (
+            result.model_dump_json()
+            if hasattr(result, "model_dump_json")
+            else str(result)
+        )
+        input_tokens, output_tokens, total_tokens = _extract_token_usage(raw_response)
+        estimated = False
+
+        if input_tokens is None:
+            chat_messages = [prompt]
+            if system:
+                chat_messages.insert(0, system)
+            input_tokens = count_chat_tokens(chat_messages, self._model)
+            estimated = True
+
+        if output_tokens is None:
+            output_tokens = count_text_tokens(output_text, self._model)
+            estimated = True
+
+        if total_tokens is None:
+            total_tokens = input_tokens + output_tokens
+
+        estimated_cost, pricing_found = estimate_llm_cost_usd(
+            self._model,
+            input_tokens=input_tokens,
+            output_tokens=output_tokens,
+        )
+        elapsed_ms = (time.perf_counter_ns() - start) // 1_000_000
+
+        record_usage(
+            CostUsageRecord(
+                provider="openai",
+                model=self._model,
+                operation="generate_structured",
+                stage=current_stage(),
+                input_tokens=input_tokens,
+                output_tokens=output_tokens,
+                total_tokens=total_tokens,
+                estimated_cost_usd=estimated_cost,
+                latency_ms=int(elapsed_ms),
+                estimated=estimated,
+                metadata={
+                    "schema": getattr(schema, "__name__", str(schema)),
+                    "pricing_found": pricing_found,
+                },
+            )
+        )
+
         return result  # type: ignore[return-value]
 
     async def stream(

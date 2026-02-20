@@ -27,7 +27,6 @@ from typing import Any
 from pydantic import BaseModel, ConfigDict, Field
 
 from vanna_kg.types.chunks import Chunk
-
 from vanna_kg.types.entities import EntityGroup, EnumeratedEntity, EntityTypeLabel
 from vanna_kg.types.facts import ExtractedFact
 
@@ -55,6 +54,7 @@ class QueryResult(BaseModel):
     sub_answers: list[dict[str, Any]] = []
     question_type: str | None = None
     timing: dict[str, int] = {}
+    cost_debug: "CostDebugReport | None" = None
 
     @property
     def total_time_ms(self) -> int:
@@ -83,6 +83,7 @@ class IngestResult(BaseModel):
     topics: int
     duration_seconds: float
     errors: list[str] = []
+    cost_debug: "CostDebugReport | None" = None
 
 
 class SearchResult(BaseModel):
@@ -113,6 +114,62 @@ class ChunkMatch(BaseModel):
 
     chunk: Chunk
     score: float
+
+
+class CostUsageRecord(BaseModel):
+    """
+    One metered model call (LLM or embedding).
+
+    Used to aggregate per-stage token/cost/latency breakdowns.
+    """
+
+    provider: str = Field(..., description="Provider name (e.g., openai)")
+    model: str = Field(..., description="Model name")
+    operation: str = Field(..., description="Operation type (generate/embed/etc.)")
+    stage: str = Field(default="unknown", description="Pipeline stage label")
+    input_tokens: int = Field(default=0, ge=0)
+    output_tokens: int = Field(default=0, ge=0)
+    total_tokens: int = Field(default=0, ge=0)
+    estimated_cost_usd: float = Field(default=0.0, ge=0.0)
+    latency_ms: int = Field(default=0, ge=0)
+    estimated: bool = Field(
+        default=False,
+        description="True when token counts are estimated rather than provider-reported",
+    )
+    metadata: dict[str, Any] = Field(default_factory=dict)
+
+
+class StageCostBreakdown(BaseModel):
+    """Aggregate telemetry for one stage."""
+
+    stage: str
+    calls: int = 0
+    input_tokens: int = 0
+    output_tokens: int = 0
+    total_tokens: int = 0
+    estimated_cost_usd: float = 0.0
+    total_latency_ms: int = 0
+
+
+class CostBreakdown(BaseModel):
+    """Aggregate telemetry totals for a request."""
+
+    total_calls: int = 0
+    total_input_tokens: int = 0
+    total_output_tokens: int = 0
+    total_tokens: int = 0
+    total_estimated_cost_usd: float = 0.0
+    total_latency_ms: int = 0
+    by_stage: list[StageCostBreakdown] = Field(default_factory=list)
+
+
+class CostDebugReport(BaseModel):
+    """Telemetry payload returned when cost_debug is enabled."""
+
+    enabled: bool = True
+    pricing_version: str = "unknown"
+    breakdown: CostBreakdown = Field(default_factory=CostBreakdown)
+    warnings: list[str] = Field(default_factory=list)
 
 
 # -----------------------------------------------------------------------------
@@ -366,6 +423,13 @@ class EntityDeduplicationOutput(BaseModel):
     merge_history: list[MergeRecord] = Field(
         default_factory=list, description="Record of all merges performed"
     )
+    canonical_entity_embeddings: list[list[float]] = Field(
+        default_factory=list,
+        description=(
+            "Embeddings aligned with canonical_entities order. "
+            "Index i corresponds to canonical_entities[i]."
+        ),
+    )
 
 
 # -----------------------------------------------------------------------------
@@ -436,6 +500,13 @@ class AssemblyInput(BaseModel):
     entities: list[CanonicalEntity] = Field(default_factory=list, description="Resolved entities")
     facts: list[Any] = Field(default_factory=list, description="Facts to write")
     topics: list[Any] = Field(default_factory=list, description="Topics to write")
+    entity_embeddings: list[list[float]] | None = Field(
+        default=None,
+        description=(
+            "Optional pre-computed entity embeddings aligned with entities order. "
+            "If provided, assembler skips entity embedding generation."
+        ),
+    )
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 

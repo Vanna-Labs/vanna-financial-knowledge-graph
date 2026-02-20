@@ -480,7 +480,12 @@ class TestDeduplicateEntities:
 
         mock_llm = MagicMock()
         mock_embeddings = MagicMock()
-        mock_embeddings.embed = AsyncMock(return_value=[[0.1, 0.2, 0.3]])
+        mock_embeddings.embed = AsyncMock(
+            side_effect=[
+                [[0.1, 0.2, 0.3]],  # mention embeddings
+                [[0.4, 0.5, 0.6]],  # canonical embeddings
+            ]
+        )
 
         result = await deduplicate_entities(entities, mock_llm, mock_embeddings)
 
@@ -488,6 +493,8 @@ class TestDeduplicateEntities:
         assert result.canonical_entities[0].name == "Apple Inc."
         assert result.canonical_entities[0].uuid  # Has a UUID
         assert result.index_to_canonical == {0: 0}
+        assert result.canonical_entity_embeddings == [[0.4, 0.5, 0.6]]
+        assert mock_embeddings.embed.await_args_list[1].args[0] == ["Apple Inc.: Tech"]
 
     @pytest.mark.asyncio
     async def test_merges_similar_entities(self):
@@ -503,11 +510,19 @@ class TestDeduplicateEntities:
 
         # High similarity between Apple entities, low with Google
         mock_embeddings = MagicMock()
-        mock_embeddings.embed = AsyncMock(return_value=[
-            [1.0, 0.0, 0.0],  # Apple Inc.
-            [0.95, 0.1, 0.0],  # AAPL (similar to Apple Inc.)
-            [0.0, 0.0, 1.0],  # Google (different)
-        ])
+        mock_embeddings.embed = AsyncMock(
+            side_effect=[
+                [
+                    [1.0, 0.0, 0.0],  # Apple Inc.
+                    [0.95, 0.1, 0.0],  # AAPL (similar to Apple Inc.)
+                    [0.0, 0.0, 1.0],  # Google (different)
+                ],
+                [
+                    [0.9, 0.1, 0.0],  # Apple canonical
+                    [0.0, 0.1, 0.9],  # Google canonical
+                ],
+            ]
+        )
 
         # LLM says Apple Inc. and AAPL are the same
         mock_llm = MagicMock()
@@ -528,6 +543,7 @@ class TestDeduplicateEntities:
 
         # Should have 2 canonical entities (Apple Inc. merged, Google separate)
         assert len(result.canonical_entities) == 2
+        assert len(result.canonical_entity_embeddings) == 2
 
         # Find Apple entity
         apple = next(e for e in result.canonical_entities if e.name == "Apple Inc.")

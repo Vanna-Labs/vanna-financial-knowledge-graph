@@ -23,6 +23,7 @@ from vanna_kg.types.results import (
     EntityRegistryMatch,
     EntityResolutionResult,
 )
+from vanna_kg.utils.embedding_text import format_canonical_entity_text
 
 # Constants matching original VannaLabsKG
 CANDIDATE_LIMIT = 25  # Top candidates from vector search
@@ -125,7 +126,7 @@ class EntityRegistry:
 
     def _entity_to_text(self, entity: CanonicalEntity) -> str:
         """Convert entity to embedding text: '{name}: {summary}'"""
-        return f"{entity.name}: {entity.summary}"
+        return format_canonical_entity_text(entity.name, entity.summary)
 
     async def _resolve_single(
         self,

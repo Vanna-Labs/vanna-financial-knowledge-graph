@@ -25,9 +25,14 @@ Example:
 from __future__ import annotations
 
 import asyncio
+import time
 from typing import TYPE_CHECKING
 
+from vanna_kg.config.pricing import estimate_embedding_cost_usd
 from vanna_kg.providers.base import EmbeddingProvider
+from vanna_kg.types.results import CostUsageRecord
+from vanna_kg.utils.cost_telemetry import current_stage, record_usage
+from vanna_kg.utils.token_count import count_text_tokens
 
 if TYPE_CHECKING:
     from langchain_openai import OpenAIEmbeddings
@@ -131,10 +136,36 @@ class OpenAIEmbeddingProvider(EmbeddingProvider):
         if not texts:
             return []
 
+        start = time.perf_counter_ns()
         client = self._get_client()
 
         # LangChain's embed_documents is synchronous, run in thread pool
         embeddings = await asyncio.to_thread(client.embed_documents, texts)
+
+        input_tokens = sum(count_text_tokens(text, self._model) for text in texts)
+        estimated_cost, pricing_found = estimate_embedding_cost_usd(
+            self._model,
+            input_tokens=input_tokens,
+        )
+        elapsed_ms = (time.perf_counter_ns() - start) // 1_000_000
+        record_usage(
+            CostUsageRecord(
+                provider="openai",
+                model=self._model,
+                operation="embed",
+                stage=current_stage(),
+                input_tokens=input_tokens,
+                output_tokens=0,
+                total_tokens=input_tokens,
+                estimated_cost_usd=estimated_cost,
+                latency_ms=int(elapsed_ms),
+                estimated=True,
+                metadata={
+                    "text_count": len(texts),
+                    "pricing_found": pricing_found,
+                },
+            )
+        )
         return embeddings
 
     async def embed_single(self, text: str) -> list[float]:
@@ -147,10 +178,33 @@ class OpenAIEmbeddingProvider(EmbeddingProvider):
         Returns:
             Embedding vector
         """
+        start = time.perf_counter_ns()
         client = self._get_client()
 
         # LangChain's embed_query is synchronous, run in thread pool
         embedding = await asyncio.to_thread(client.embed_query, text)
+
+        input_tokens = count_text_tokens(text, self._model)
+        estimated_cost, pricing_found = estimate_embedding_cost_usd(
+            self._model,
+            input_tokens=input_tokens,
+        )
+        elapsed_ms = (time.perf_counter_ns() - start) // 1_000_000
+        record_usage(
+            CostUsageRecord(
+                provider="openai",
+                model=self._model,
+                operation="embed_single",
+                stage=current_stage(),
+                input_tokens=input_tokens,
+                output_tokens=0,
+                total_tokens=input_tokens,
+                estimated_cost_usd=estimated_cost,
+                latency_ms=int(elapsed_ms),
+                estimated=True,
+                metadata={"pricing_found": pricing_found},
+            )
+        )
         return embedding
 
     def with_model(self, model: str) -> "OpenAIEmbeddingProvider":

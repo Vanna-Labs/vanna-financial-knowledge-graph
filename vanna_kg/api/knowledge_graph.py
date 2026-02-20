@@ -33,8 +33,11 @@ See Also:
 from __future__ import annotations
 
 import asyncio
+from collections.abc import Callable
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable
+from typing import TYPE_CHECKING, Any
+
+from vanna_kg.utils.cost_telemetry import CostCollector, telemetry_collector, telemetry_stage
 
 if TYPE_CHECKING:
     from vanna_kg.api.shell import KGShell
@@ -248,12 +251,13 @@ class KnowledgeGraph:
 
         # 1. Extraction: Chunks -> Entities + Facts
         report("extraction", 0.0)
-        extraction_results = await extract_from_chunks(
-            chunk_inputs,
-            self._llm,
-            document_date=document_date,
-            concurrency=self._config.extraction_concurrency,
-        )
+        with telemetry_stage("extraction"):
+            extraction_results = await extract_from_chunks(
+                chunk_inputs,
+                self._llm,
+                document_date=document_date,
+                concurrency=self._config.extraction_concurrency,
+            )
         report("extraction", 1.0)
 
         all_entities = []
@@ -264,12 +268,13 @@ class KnowledgeGraph:
 
         # 2. In-document deduplication
         report("deduplication", 0.0)
-        dedup_result = await deduplicate_entities(
-            all_entities,
-            self._llm,
-            self._embeddings,
-            similarity_threshold=self._config.dedup_similarity_threshold,
-        )
+        with telemetry_stage("dedup"):
+            dedup_result = await deduplicate_entities(
+                all_entities,
+                self._llm,
+                self._embeddings,
+                similarity_threshold=self._config.dedup_similarity_threshold,
+            )
         report("deduplication", 0.5)
 
         # 3. Resolution (Entity + Topic in parallel)
@@ -297,9 +302,20 @@ class KnowledgeGraph:
             self._config,
         )
 
+        async def resolve_entities():
+            with telemetry_stage("entity_registry"):
+                return await entity_registry.resolve(
+                    dedup_result.canonical_entities,
+                    embeddings=dedup_result.canonical_entity_embeddings or None,
+                )
+
+        async def resolve_topics():
+            with telemetry_stage("topic_resolution"):
+                return await topic_resolver.resolve(topic_definitions)
+
         entity_resolution, topic_resolution = await asyncio.gather(
-            entity_registry.resolve(dedup_result.canonical_entities),
-            topic_resolver.resolve(topic_definitions),
+            resolve_entities(),
+            resolve_topics(),
         )
         report("resolution", 1.0)
 
@@ -368,6 +384,11 @@ class KnowledgeGraph:
         report("assembly", 0.0)
         assembler = Assembler(self._storage, self._embeddings)
         entities_to_write = entity_resolution.new_entities
+        entity_embeddings_to_write = self._align_entity_embeddings(
+            entities_to_write,
+            dedup_result.canonical_entities,
+            dedup_result.canonical_entity_embeddings,
+        )
 
         assembly_result = await assembler.assemble(
             AssemblyInput(
@@ -376,6 +397,7 @@ class KnowledgeGraph:
                 entities=entities_to_write,
                 facts=facts,
                 topics=topics,
+                entity_embeddings=entity_embeddings_to_write,
             )
         )
         report("assembly", 1.0)
@@ -397,6 +419,7 @@ class KnowledgeGraph:
         document_date: str | None = None,
         metadata: dict[str, Any] | None = None,
         on_progress: Callable[[str, float], None] | None = None,
+        cost_debug: bool = False,
     ) -> "IngestResult":
         """
         Ingest a PDF document into the knowledge graph.
@@ -432,41 +455,50 @@ class KnowledgeGraph:
         path = Path(path)
         doc_uuid = str(uuid4())
         errors: list[str] = []
+        collector = CostCollector(
+            warn_threshold_usd=getattr(self._config, "cost_debug_warn_threshold_usd", None)
+        ) if cost_debug else None
 
         # Report progress helper
         def report(stage: str, progress: float) -> None:
             if on_progress:
                 on_progress(stage, progress)
 
-        # 1. Chunking: PDF -> Chunks
-        report("chunking", 0.0)
-        chunk_inputs = await chunk_pdf(
-            path,
-            doc_id=doc_uuid,
-            api_key=self._config.google_api_key,
-        )
-        report("chunking", 1.0)
-
-        if not chunk_inputs:
-            return IngestResult(
-                document_id=doc_uuid,
-                chunks=0,
-                entities=0,
-                facts=0,
-                topics=0,
-                duration_seconds=time.time() - start_time,
-                errors=["No chunks extracted from PDF"],
+        with telemetry_collector(collector):
+            # 1. Chunking: PDF -> Chunks
+            report("chunking", 0.0)
+            chunk_inputs = await chunk_pdf(
+                path,
+                doc_id=doc_uuid,
+                api_key=self._config.google_api_key,
             )
-        return await self._ingest_from_chunk_inputs(
-            chunk_inputs=chunk_inputs,
-            doc_uuid=doc_uuid,
-            document_name=path.name,
-            document_date=document_date,
-            metadata=metadata,
-            start_time=start_time,
-            errors=errors,
-            on_progress=on_progress,
-        )
+            report("chunking", 1.0)
+
+            if not chunk_inputs:
+                result = IngestResult(
+                    document_id=doc_uuid,
+                    chunks=0,
+                    entities=0,
+                    facts=0,
+                    topics=0,
+                    duration_seconds=time.time() - start_time,
+                    errors=["No chunks extracted from PDF"],
+                )
+            else:
+                result = await self._ingest_from_chunk_inputs(
+                    chunk_inputs=chunk_inputs,
+                    doc_uuid=doc_uuid,
+                    document_name=path.name,
+                    document_date=document_date,
+                    metadata=metadata,
+                    start_time=start_time,
+                    errors=errors,
+                    on_progress=on_progress,
+                )
+
+        if collector is not None:
+            result = result.model_copy(update={"cost_debug": collector.summary()})
+        return result
 
     async def ingest_markdown(
         self,
@@ -476,6 +508,7 @@ class KnowledgeGraph:
         metadata: dict[str, Any] | None = None,
         max_chunks: int | None = None,
         on_progress: Callable[[str, float], None] | None = None,
+        cost_debug: bool = False,
     ) -> "IngestResult":
         """Ingest a markdown document."""
         await self._ensure_initialized()
@@ -493,45 +526,54 @@ class KnowledgeGraph:
         path = Path(path)
         doc_uuid = str(uuid4())
         errors: list[str] = []
+        collector = CostCollector(
+            warn_threshold_usd=getattr(self._config, "cost_debug_warn_threshold_usd", None)
+        ) if cost_debug else None
 
         # Report progress helper
         def report(stage: str, progress: float) -> None:
             if on_progress:
                 on_progress(stage, progress)
 
-        # Read markdown content
-        report("chunking", 0.0)
-        content = path.read_text(encoding="utf-8")
+        with telemetry_collector(collector):
+            # Read markdown content
+            report("chunking", 0.0)
+            content = path.read_text(encoding="utf-8")
 
-        # Chunk the markdown
-        chunk_inputs = chunk_markdown(content, doc_id=doc_uuid)
-        if max_chunks is not None:
-            if max_chunks <= 0:
-                raise ValueError("max_chunks must be a positive integer")
-            chunk_inputs = chunk_inputs[:max_chunks]
-        report("chunking", 1.0)
+            # Chunk the markdown
+            chunk_inputs = chunk_markdown(content, doc_id=doc_uuid)
+            if max_chunks is not None:
+                if max_chunks <= 0:
+                    raise ValueError("max_chunks must be a positive integer")
+                chunk_inputs = chunk_inputs[:max_chunks]
+            report("chunking", 1.0)
 
-        if not chunk_inputs:
-            errors.append("No chunks extracted from markdown")
-            return IngestResult(
-                document_id=doc_uuid,
-                chunks=0,
-                entities=0,
-                facts=0,
-                topics=0,
-                duration_seconds=time.time() - start_time,
-                errors=errors,
-            )
-        return await self._ingest_from_chunk_inputs(
-            chunk_inputs=chunk_inputs,
-            doc_uuid=doc_uuid,
-            document_name=path.name,
-            document_date=document_date,
-            metadata=metadata,
-            start_time=start_time,
-            errors=errors,
-            on_progress=on_progress,
-        )
+            if not chunk_inputs:
+                errors.append("No chunks extracted from markdown")
+                result = IngestResult(
+                    document_id=doc_uuid,
+                    chunks=0,
+                    entities=0,
+                    facts=0,
+                    topics=0,
+                    duration_seconds=time.time() - start_time,
+                    errors=errors,
+                )
+            else:
+                result = await self._ingest_from_chunk_inputs(
+                    chunk_inputs=chunk_inputs,
+                    doc_uuid=doc_uuid,
+                    document_name=path.name,
+                    document_date=document_date,
+                    metadata=metadata,
+                    start_time=start_time,
+                    errors=errors,
+                    on_progress=on_progress,
+                )
+
+        if collector is not None:
+            result = result.model_copy(update={"cost_debug": collector.summary()})
+        return result
 
     async def ingest_chunks(
         self,
@@ -541,6 +583,7 @@ class KnowledgeGraph:
         document_date: str | None = None,
         metadata: dict[str, Any] | None = None,
         on_progress: Callable[[str, float], None] | None = None,
+        cost_debug: bool = False,
     ) -> "IngestResult":
         """Ingest pre-chunked content into the knowledge graph."""
         await self._ensure_initialized()
@@ -571,191 +614,221 @@ class KnowledgeGraph:
 
         start_time = time.time()
         errors: list[str] = []
+        collector = CostCollector(
+            warn_threshold_usd=getattr(self._config, "cost_debug_warn_threshold_usd", None)
+        ) if cost_debug else None
 
-        if not chunks:
-            return IngestResult(
-                document_id=str(uuid4()),
-                chunks=0,
-                entities=0,
-                facts=0,
-                topics=0,
-                duration_seconds=time.time() - start_time,
-                errors=["No chunks provided"],
-            )
-
-        # Report progress helper
-        def report(stage: str, progress: float) -> None:
-            if on_progress:
-                on_progress(stage, progress)
-
-        doc_uuids = {c.document_uuid for c in chunks if c.document_uuid}
-        if len(doc_uuids) > 1:
-            raise ValueError("All chunks must share the same document_uuid")
-
-        doc_uuid = next(iter(doc_uuids), str(uuid4()))
-        effective_document_date = document_date or next(
-            (c.document_date for c in chunks if c.document_date),
-            None,
-        )
-
-        normalized_chunks: list[KGChunk] = []
-        chunk_inputs: list[ChunkInput] = []
-        for idx, chunk in enumerate(chunks):
-            position = chunk.position if chunk.position is not None else idx
-            chunk_uuid = chunk.uuid or str(uuid4())
-            normalized_chunks.append(
-                KGChunk(
-                    uuid=chunk_uuid,
-                    document_uuid=doc_uuid,
-                    content=chunk.content,
-                    header_path=chunk.header_path,
-                    position=position,
-                    document_date=effective_document_date,
+        with telemetry_collector(collector):
+            if not chunks:
+                result = IngestResult(
+                    document_id=str(uuid4()),
+                    chunks=0,
+                    entities=0,
+                    facts=0,
+                    topics=0,
+                    duration_seconds=time.time() - start_time,
+                    errors=["No chunks provided"],
                 )
+                if collector is not None:
+                    result = result.model_copy(update={"cost_debug": collector.summary()})
+                return result
+
+            # Report progress helper
+            def report(stage: str, progress: float) -> None:
+                if on_progress:
+                    on_progress(stage, progress)
+
+            doc_uuids = {c.document_uuid for c in chunks if c.document_uuid}
+            if len(doc_uuids) > 1:
+                raise ValueError("All chunks must share the same document_uuid")
+
+            doc_uuid = next(iter(doc_uuids), str(uuid4()))
+            effective_document_date = document_date or next(
+                (c.document_date for c in chunks if c.document_date),
+                None,
             )
-            chunk_inputs.append(
-                ChunkInput(
-                    doc_id=doc_uuid,
-                    content=chunk.content,
-                    header_path=chunk.header_path,
-                    position=position,
-                )
-            )
 
-        # 1. Extraction: Chunks -> Entities + Facts
-        report("extraction", 0.0)
-        extraction_results = await extract_from_chunks(
-            chunk_inputs,
-            self._llm,
-            document_date=effective_document_date,
-            concurrency=self._config.extraction_concurrency,
-        )
-        report("extraction", 1.0)
-
-        all_entities = []
-        all_facts = []
-        for result in extraction_results:
-            all_entities.extend(result.entities)
-            all_facts.extend(result.facts)
-
-        # 2. In-document deduplication
-        report("deduplication", 0.0)
-        dedup_result = await deduplicate_entities(
-            all_entities,
-            self._llm,
-            self._embeddings,
-            similarity_threshold=self._config.dedup_similarity_threshold,
-        )
-        report("deduplication", 0.5)
-
-        # 3. Resolution (Entity + Topic in parallel)
-        report("resolution", 0.0)
-        topic_names = set()
-        for fact in all_facts:
-            topic_names.update(fact.topics)
-
-        topic_definitions = [
-            TopicDefinition(topic=name, definition=name)
-            for name in topic_names
-        ]
-
-        entity_registry = EntityRegistry(
-            self._storage,
-            self._llm,
-            self._embeddings,
-            self._config,
-        )
-        ontology_index = await self._create_ontology_index()
-        topic_resolver = TopicResolver(
-            ontology_index,
-            self._llm,
-            self._embeddings,
-            self._config,
-        )
-
-        entity_resolution, topic_resolution = await asyncio.gather(
-            entity_registry.resolve(dedup_result.canonical_entities),
-            topic_resolver.resolve(topic_definitions),
-        )
-        report("resolution", 1.0)
-
-        # 4. Build final data structures
-        document = Document(
-            uuid=doc_uuid,
-            name=document_name or f"chunks-{doc_uuid[:8]}",
-            document_date=effective_document_date,
-            metadata=metadata or {},
-        )
-
-        entity_name_to_uuid: dict[str, str] = {}
-        for ce in dedup_result.canonical_entities:
-            final_uuid = entity_resolution.uuid_remap.get(ce.uuid, ce.uuid)
-            entity_name_to_uuid[ce.name] = final_uuid
-            for alias in ce.aliases:
-                entity_name_to_uuid[alias] = final_uuid
-
-        facts: list[Fact] = []
-        chunk_idx = 0
-        for result in extraction_results:
-            chunk_uuid = (
-                normalized_chunks[chunk_idx].uuid if chunk_idx < len(normalized_chunks) else None
-            )
-            for ef in result.facts:
-                subject_uuid = entity_name_to_uuid.get(ef.subject)
-                object_uuid = entity_name_to_uuid.get(ef.object)
-                if subject_uuid and object_uuid and chunk_uuid:
-                    facts.append(
-                        Fact(
-                            uuid=str(uuid4()),
-                            content=ef.fact,
-                            subject_uuid=subject_uuid,
-                            subject_name=ef.subject,
-                            object_uuid=object_uuid,
-                            object_name=ef.object,
-                            object_type="topic" if ef.object_type == "Topic" else "entity",
-                            chunk_uuid=chunk_uuid,
-                            relationship_type=ef.relationship,
-                            date_context=ef.date_context,
-                        )
+            normalized_chunks: list[KGChunk] = []
+            chunk_inputs: list[ChunkInput] = []
+            for idx, chunk in enumerate(chunks):
+                position = chunk.position if chunk.position is not None else idx
+                chunk_uuid = chunk.uuid or str(uuid4())
+                normalized_chunks.append(
+                    KGChunk(
+                        uuid=chunk_uuid,
+                        document_uuid=doc_uuid,
+                        content=chunk.content,
+                        header_path=chunk.header_path,
+                        position=position,
+                        document_date=effective_document_date,
                     )
-            chunk_idx += 1
+                )
+                chunk_inputs.append(
+                    ChunkInput(
+                        doc_id=doc_uuid,
+                        content=chunk.content,
+                        header_path=chunk.header_path,
+                        position=position,
+                    )
+                )
 
-        topics: list[Topic] = []
-        for tr in topic_resolution.resolved_topics:
-            topics.append(
-                Topic(
-                    uuid=tr.uuid,
-                    name=tr.canonical_name,
-                    definition=tr.definition or tr.canonical_name,
-                    group_id="default",
+            # 1. Extraction: Chunks -> Entities + Facts
+            report("extraction", 0.0)
+            with telemetry_stage("extraction"):
+                extraction_results = await extract_from_chunks(
+                    chunk_inputs,
+                    self._llm,
+                    document_date=effective_document_date,
+                    concurrency=self._config.extraction_concurrency,
+                )
+            report("extraction", 1.0)
+
+            all_entities = []
+            all_facts = []
+            for result in extraction_results:
+                all_entities.extend(result.entities)
+                all_facts.extend(result.facts)
+
+            # 2. In-document deduplication
+            report("deduplication", 0.0)
+            with telemetry_stage("dedup"):
+                dedup_result = await deduplicate_entities(
+                    all_entities,
+                    self._llm,
+                    self._embeddings,
+                    similarity_threshold=self._config.dedup_similarity_threshold,
+                )
+            report("deduplication", 0.5)
+
+            # 3. Resolution (Entity + Topic in parallel)
+            report("resolution", 0.0)
+            topic_names = set()
+            for fact in all_facts:
+                topic_names.update(fact.topics)
+
+            topic_definitions = [
+                TopicDefinition(topic=name, definition=name)
+                for name in topic_names
+            ]
+
+            entity_registry = EntityRegistry(
+                self._storage,
+                self._llm,
+                self._embeddings,
+                self._config,
+            )
+            ontology_index = await self._create_ontology_index()
+            topic_resolver = TopicResolver(
+                ontology_index,
+                self._llm,
+                self._embeddings,
+                self._config,
+            )
+
+            async def resolve_entities():
+                with telemetry_stage("entity_registry"):
+                    return await entity_registry.resolve(
+                        dedup_result.canonical_entities,
+                        embeddings=dedup_result.canonical_entity_embeddings or None,
+                    )
+
+            async def resolve_topics():
+                with telemetry_stage("topic_resolution"):
+                    return await topic_resolver.resolve(topic_definitions)
+
+            entity_resolution, topic_resolution = await asyncio.gather(
+                resolve_entities(),
+                resolve_topics(),
+            )
+            report("resolution", 1.0)
+
+            # 4. Build final data structures
+            document = Document(
+                uuid=doc_uuid,
+                name=document_name or f"chunks-{doc_uuid[:8]}",
+                document_date=effective_document_date,
+                metadata=metadata or {},
+            )
+
+            entity_name_to_uuid: dict[str, str] = {}
+            for ce in dedup_result.canonical_entities:
+                final_uuid = entity_resolution.uuid_remap.get(ce.uuid, ce.uuid)
+                entity_name_to_uuid[ce.name] = final_uuid
+                for alias in ce.aliases:
+                    entity_name_to_uuid[alias] = final_uuid
+
+            facts: list[Fact] = []
+            chunk_idx = 0
+            for result in extraction_results:
+                chunk_uuid = (
+                    normalized_chunks[chunk_idx].uuid if chunk_idx < len(normalized_chunks) else None
+                )
+                for ef in result.facts:
+                    subject_uuid = entity_name_to_uuid.get(ef.subject)
+                    object_uuid = entity_name_to_uuid.get(ef.object)
+                    if subject_uuid and object_uuid and chunk_uuid:
+                        facts.append(
+                            Fact(
+                                uuid=str(uuid4()),
+                                content=ef.fact,
+                                subject_uuid=subject_uuid,
+                                subject_name=ef.subject,
+                                object_uuid=object_uuid,
+                                object_name=ef.object,
+                                object_type="topic" if ef.object_type == "Topic" else "entity",
+                                chunk_uuid=chunk_uuid,
+                                relationship_type=ef.relationship,
+                                date_context=ef.date_context,
+                            )
+                        )
+                chunk_idx += 1
+
+            topics: list[Topic] = []
+            for tr in topic_resolution.resolved_topics:
+                topics.append(
+                    Topic(
+                        uuid=tr.uuid,
+                        name=tr.canonical_name,
+                        definition=tr.definition or tr.canonical_name,
+                        group_id="default",
+                    )
+                )
+
+            # 5. Assembly: Write to storage
+            report("assembly", 0.0)
+            assembler = Assembler(self._storage, self._embeddings)
+            entities_to_write = entity_resolution.new_entities
+            entity_embeddings_to_write = self._align_entity_embeddings(
+                entities_to_write,
+                dedup_result.canonical_entities,
+                dedup_result.canonical_entity_embeddings,
+            )
+
+            assembly_result = await assembler.assemble(
+                AssemblyInput(
+                    document=document,
+                    chunks=normalized_chunks,
+                    entities=entities_to_write,
+                    facts=facts,
+                    topics=topics,
+                    entity_embeddings=entity_embeddings_to_write,
                 )
             )
+            report("assembly", 1.0)
 
-        # 5. Assembly: Write to storage
-        report("assembly", 0.0)
-        assembler = Assembler(self._storage, self._embeddings)
-        entities_to_write = entity_resolution.new_entities
-
-        assembly_result = await assembler.assemble(
-            AssemblyInput(
-                document=document,
-                chunks=normalized_chunks,
-                entities=entities_to_write,
-                facts=facts,
-                topics=topics,
+            result = IngestResult(
+                document_id=doc_uuid,
+                chunks=assembly_result.chunks_written,
+                entities=assembly_result.entities_written,
+                facts=assembly_result.facts_written,
+                topics=assembly_result.topics_written,
+                duration_seconds=time.time() - start_time,
+                errors=errors,
             )
-        )
-        report("assembly", 1.0)
 
-        return IngestResult(
-            document_id=doc_uuid,
-            chunks=assembly_result.chunks_written,
-            entities=assembly_result.entities_written,
-            facts=assembly_result.facts_written,
-            topics=assembly_result.topics_written,
-            duration_seconds=time.time() - start_time,
-            errors=errors,
-        )
+        if collector is not None:
+            result = result.model_copy(update={"cost_debug": collector.summary()})
+        return result
 
     async def ingest_directory(
         self,
@@ -825,6 +898,7 @@ class KnowledgeGraph:
         question: str,
         *,
         include_sources: bool = True,
+        cost_debug: bool = False,
     ) -> "QueryResult":
         """
         Answer a question using the knowledge graph.
@@ -850,6 +924,9 @@ class KnowledgeGraph:
 
         from vanna_kg.query import GraphRAGPipeline
         from vanna_kg.types import QueryResult
+        collector = CostCollector(
+            warn_threshold_usd=getattr(self._config, "cost_debug_warn_threshold_usd", None)
+        ) if cost_debug else None
 
         # Cache pipeline for reuse
         if self._query_pipeline is None:
@@ -861,13 +938,14 @@ class KnowledgeGraph:
             )
 
         # Execute query
-        result = await self._query_pipeline.query(
-            question,
-            include_sources=include_sources,
-        )
+        with telemetry_collector(collector):
+            result = await self._query_pipeline.query(
+                question,
+                include_sources=include_sources,
+            )
 
         # Map PipelineResult to public QueryResult
-        return QueryResult(
+        query_result = QueryResult(
             answer=result.answer,
             confidence=result.confidence,
             sources=result.sources if include_sources else [],
@@ -882,6 +960,9 @@ class KnowledgeGraph:
             question_type=result.question_type,
             timing=result.timing,
         )
+        if collector is not None:
+            query_result = query_result.model_copy(update={"cost_debug": collector.summary()})
+        return query_result
 
     async def decompose(
         self,
@@ -1083,3 +1164,33 @@ class KnowledgeGraph:
         """
         from vanna_kg.api.shell import KGShell
         return KGShell(self)
+
+    def _align_entity_embeddings(
+        self,
+        entities: list[Any],
+        canonical_entities: list[Any],
+        canonical_embeddings: list[list[float]],
+    ) -> list[list[float]] | None:
+        """
+        Align canonical entity embeddings to a target entity order by UUID.
+
+        Returns None when embeddings are missing or misaligned.
+        """
+        if not entities:
+            return []
+
+        if len(canonical_entities) != len(canonical_embeddings):
+            return None
+
+        by_uuid = {
+            entity.uuid: embedding
+            for entity, embedding in zip(canonical_entities, canonical_embeddings)
+        }
+        aligned: list[list[float]] = []
+        for entity in entities:
+            embedding = by_uuid.get(entity.uuid)
+            if embedding is None:
+                return None
+            aligned.append(embedding)
+
+        return aligned
